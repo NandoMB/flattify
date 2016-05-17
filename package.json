@@ -1,0 +1,24 @@
+{
+  "name": "flattify",
+  "version": "1.0.0",
+  "description": "Convert JSON to \"Flat JSON\"",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/NandoMB/flattify.git"
+  },
+  "keywords": [
+    "JSON",
+    "flat",
+    "plain"
+  ],
+  "author": "Fernando Machado Bernardino <fernandombernardino@gmail.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/NandoMB/flattify/issues"
+  },
+  "homepage": "https://github.com/NandoMB/flattify#readme"
+}
