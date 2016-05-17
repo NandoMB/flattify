@@ -4,7 +4,7 @@
   "description": "Convert JSON to \"Flat JSON\"",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "./node_modules/mocha/bin/mocha --reporter spec ./test/flattify.js"
   },
   "repository": {
     "type": "git",
@@ -20,5 +20,9 @@
   "bugs": {
     "url": "https://github.com/NandoMB/flattify/issues"
   },
-  "homepage": "https://github.com/NandoMB/flattify#readme"
+  "homepage": "https://github.com/NandoMB/flattify#readme",
+  "devDependencies": {
+    "chai": "^3.5.0",
+    "mocha": "^2.4.5"
+  }
 }
