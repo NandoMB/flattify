@@ -1,0 +1,44 @@
+[
+  {
+    "id": 1,
+    "gender": "Male",
+    "first": "Joshua",
+    "last": "Williams",
+    "emails": [
+      "jwilliams1@vkontakte.ru",
+      "phowell1@ezinearticles.com",
+      "aferguson2@pen.io"
+    ],
+    "addresses": [
+      {
+        "street": "Anzinger Court",
+        "number": 73902
+      },
+      {
+        "street": "Anthes Parkway",
+        "number": 106
+      }
+    ]
+  },
+  {
+    "id": 2,
+    "gender": "Male",
+    "first": "Joshua",
+    "last": "Williams",
+    "emails": [
+      "jwilliams1@vkontakte.ru",
+      "phowell1@ezinearticles.com",
+      "aferguson2@pen.io"
+    ],
+    "addresses": [
+      {
+        "street": "Anzinger Court",
+        "number": 73902
+      },
+      {
+        "street": "Anthes Parkway",
+        "number": 106
+      }
+    ]
+  }
+]
