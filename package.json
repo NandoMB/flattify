@@ -1,6 +1,6 @@
 {
   "name": "flattify",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Convert JSON to \"Flat JSON\"",
   "main": "index.js",
   "scripts": {
