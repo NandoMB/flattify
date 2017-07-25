@@ -1,24 +1,24 @@
 # [Flattify](https://github.com/NandoMB/flattify)
 
 Convert JSON to "Flat JSON".
-<br>
-<br>
+
 ## Getting Started
 #### Installation
+
 ```sh
 $ npm install flattify --save
 ```
-<br>
-#### How to use...
+
+#### How to use
+
 ```js
 var flattify = require('./flattify');
 ```
-<br>
-<br>
+
 ##### flattify(json);
 Using with only the first parameter, only objects will be converted.
 Arrays will be transformed to string.
-<br />
+
 ```js
 var flattify = require('./flattify');
 
@@ -47,8 +47,9 @@ var json = {
 var flattenJson = flattify(json);
 console.log(flattenJson);
 ```
-<br>
+
 Result:
+
 ```js
 {
   "id": 1,
@@ -59,11 +60,10 @@ Result:
   "addresses": "[{\"street\":\"Anzinger Court\",\"number\":73902},{\"street\":\"Anthes Parkway\",\"number\":106}]"
 }
 ```
-<br>
-<br>
+
 #### flattify(json, true);
 Using with the first and second parameter, all objects and arrays will be converted.
-<br />
+
 ```js
 var flattify = require('./flattify');
 
@@ -92,8 +92,9 @@ var json = {
 var flattenJson = flattify(json, true);
 console.log(flattenJson);
 ```
-<br>
+
 Result:
+
 ```js
 {
   "id": 1,
@@ -109,7 +110,7 @@ Result:
   "addresses.1.number": 106
 }
 ```
-<br>
+
 ## License
 The MIT License (MIT)
 
