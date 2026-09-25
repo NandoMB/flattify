@@ -8,6 +8,12 @@ updates:
       dev-dependencies:
         dependency-type: development
     open-pull-requests-limit: 5
+    ignore:
+      # Pinned on purpose: `pnpm run test:ts-legacy` checks the oldest TypeScript version supported
+      - dependency-name: typescript-5.0
+      # Miniflare 5 is still an alpha with a different API (see docs/file-docs.md)
+      - dependency-name: miniflare
+        update-types: ["version-update:semver-major"]
 
   - package-ecosystem: github-actions
     directory: /
