@@ -140,6 +140,26 @@ describe('unflatten options', () => {
     expect(unflatten({ DB__HOST: 'localhost', DB__PORT: '5432' }, { delimiter: '__' })).toEqual({ DB: { HOST: 'localhost', PORT: '5432' } });
   });
 
+  test('notation: Should read bracket paths, including form-field names', () => {
+    expect(unflatten({ 'items[0].id': 1, 'items[1].id': 2, 'a\\.b.c\\[d': 1 }, { notation: 'bracket' })).toEqual({ items: [{ id: 1 }, { id: 2 }], 'a.b': { 'c[d': 1 } });
+    expect(unflatten({ 'user[name]': 'Ada', 'user[tags][0]': 'x', 'user[tags][1]': 'y' }, { notation: 'bracket' })).toEqual({ user: { name: 'Ada', tags: ['x', 'y'] } });
+    expect(unflatten({ '[0].id': 1, '[1].id': 2 }, { notation: 'bracket', asArray: true })).toEqual([{ id: 1 }, { id: 2 }]);
+  });
+
+  test('notation: Should read JSON Pointers', () => {
+    expect(unflatten({ '/items/0/id': 1, '/a~1b/m~0n': 2, '/a~1b/': 3 }, { notation: 'pointer' })).toEqual({ items: [{ id: 1 }], 'a/b': { 'm~n': 2, '': 3 } });
+  });
+
+  test('notation: Should reject keys that are not JSON Pointers', () => {
+    expect(() => unflatten({ 'a/b': 1 }, { notation: 'pointer' })).toThrow(new TypeError('A JSON Pointer must start with "/", got "a/b"'));
+  });
+
+  test('notation: Should not pollute Object.prototype with any notation', () => {
+    unflatten({ '__proto__[polluted]': true, 'constructor[prototype][polluted]': true }, { notation: 'bracket' });
+    unflatten({ '/__proto__/polluted': true, '/constructor/prototype/polluted': true }, { notation: 'pointer' });
+    expect(({} as Record<string, unknown>).polluted).toBeUndefined();
+  });
+
   test('object: Should never build arrays', () => {
     expect(unflatten({ 'list.0': 'a', 'list.1': 'b' }, { object: true })).toEqual({ list: { 0: 'a', 1: 'b' } });
   });
@@ -194,6 +214,7 @@ describe('unflatten options', () => {
     [{ delimiter: 1 as unknown as string }, new TypeError('`delimiter` must be a non-empty string')],
     [{ delimiter: '\\' }, new RangeError('`delimiter` cannot contain `\\` while `escape` is enabled: it is the escape character')],
     [{ arrayLimit: -1 }, new RangeError('`arrayLimit` must be a non-negative integer or Infinity')],
+    [{ notation: 'slash' as 'dot' }, new TypeError("`notation` must be 'dot', 'bracket' or 'pointer'")],
     [{ arrayLimit: 1.5 }, new RangeError('`arrayLimit` must be a non-negative integer or Infinity')],
   ])('Should reject invalid options %j', (options, error) => {
     expect(() => unflatten({ a: 1 }, options)).toThrow(error);
@@ -241,6 +262,12 @@ describe('Unflatten type', () => {
     expectTypeOf<Unflatten<Record<string, unknown>, { asArray: true }>>().toEqualTypeOf<unknown[]>();
     expectTypeOf<Unflatten<{ '0': 1; name: 'x' }, { asArray: true }>>().toEqualTypeOf<never>();
     expectTypeOf<Unflatten<{ '0': 1 }, { asArray: boolean }>>().toEqualTypeOf<{ 0: 1 } | [1]>();
+  });
+
+  test('Should follow the notation', () => {
+    expectTypeOf<Unflatten<{ [x: `items[${number}].id`]: number; 'point[0]': 1; 'a\\.b': 2 }, { notation: 'bracket' }>>().toEqualTypeOf<{ items: { id: number }[]; point: [1]; 'a.b': 2 }>();
+    expectTypeOf<Unflatten<{ 'user[name]': string; 'user[tags][0]': string }, { notation: 'bracket' }>>().toEqualTypeOf<{ user: { name: string; tags: [string] } }>();
+    expectTypeOf<Unflatten<{ [x: `/items/${number}/id`]: number; '/a~1b/m~0n': 1 }, { notation: 'pointer' }>>().toEqualTypeOf<{ items: { id: number }[]; 'a/b': { 'm~n': 1 } }>();
   });
 
   test('Should widen to Record<string, unknown> when the keys are unknown', () => {

@@ -1,5 +1,6 @@
 import { assign, isContainer } from '../shared/guards.ts';
-import { escapeKey } from '../shared/path.ts';
+import { pathFormat, validateNotation } from '../shared/notation.ts';
+import { validate } from '../shared/validate.ts';
 import type { Flatten, FlattenOptions } from './types.ts';
 
 interface Frame {
@@ -11,9 +12,7 @@ interface Frame {
   depth: number;
 }
 
-function validate(delimiter: string, maxDepth: number, escape: boolean, circular: string): void {
-  if (typeof delimiter !== 'string' || delimiter === '') throw new TypeError('`delimiter` must be a non-empty string');
-  if (escape && delimiter.includes('\\')) throw new RangeError('`delimiter` cannot contain `\\` while `escape` is enabled: it is the escape character');
+function validateWalk(maxDepth: number, circular: string): void {
   if (maxDepth !== Infinity && (!Number.isInteger(maxDepth) || maxDepth < 1)) throw new RangeError('`maxDepth` must be a positive integer or Infinity');
   if (circular !== 'throw' && circular !== 'skip') throw new TypeError("`circular` must be 'throw' or 'skip'");
 }
@@ -33,6 +32,12 @@ function validate(delimiter: string, maxDepth: number, escape: boolean, circular
  *
  * flatten({ user: { name: 'Ada' } }, { delimiter: '_' });
  * // { user_name: 'Ada' }
+ *
+ * flatten({ items: [{ id: 1 }] }, { notation: 'bracket' });
+ * // { 'items[0].id': 1 }
+ *
+ * flatten({ items: [{ id: 1 }] }, { notation: 'pointer' });
+ * // { '/items/0/id': 1 }
  * ```
  *
  * @param input The plain object or array to flatten.
@@ -43,8 +48,11 @@ function validate(delimiter: string, maxDepth: number, escape: boolean, circular
 export function flatten<T extends object>(input: T): Flatten<T>;
 export function flatten<T extends object, const O extends FlattenOptions>(input: T, options: O): Flatten<T, O>;
 export function flatten(input: object, options: FlattenOptions = {}): Record<string, unknown> {
-  const { delimiter = '.', maxDepth = Infinity, safe = false, keepEmpty = true, escape = true, circular = 'throw', transformKey, preserve } = options;
-  validate(delimiter, maxDepth, escape, circular);
+  const { delimiter = '.', notation = 'dot', maxDepth = Infinity, safe = false, keepEmpty = true, escape = true, circular = 'throw', transformKey, preserve } = options;
+  validateNotation(notation);
+  if (notation !== 'pointer') validate(delimiter, escape);
+  validateWalk(maxDepth, circular);
+  const format = pathFormat(notation, delimiter, escape);
   if (!isContainer(input, safe)) throw new TypeError('flatten() expects a plain object or an array');
 
   const result: Record<string, unknown> = {};
@@ -62,9 +70,7 @@ export function flatten(input: object, options: FlattenOptions = {}): Record<str
 
     const key = frame.keys[frame.index++];
     const value = frame.value[key];
-    let segment = transformKey && !frame.isArray ? transformKey(key) : key;
-    if (escape) segment = escapeKey(segment, delimiter);
-    const path = frame.path === undefined ? segment : frame.path + delimiter + segment;
+    const path = format.join(frame.path, transformKey && !frame.isArray ? transformKey(key) : key, frame.isArray);
 
     if (isContainer(value, safe) && frame.depth < maxDepth && !(preserve && preserve(path, value))) {
       if (ancestors.has(value)) {

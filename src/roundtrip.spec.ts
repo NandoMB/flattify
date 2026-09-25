@@ -9,7 +9,7 @@ const hasIndexKeysOnly = (value: unknown): boolean =>
 const someNested = (value: unknown, predicate: (value: unknown) => boolean): boolean =>
   predicate(value) || (typeof value === 'object' && value !== null && Object.values(value).some((child) => someNested(child, predicate)));
 
-const key = fc.oneof(fc.string(), fc.stringMatching(/^[ab_:.\\]{0,4}$/)).filter((k) => k !== '__proto__');
+const key = fc.oneof(fc.string(), fc.stringMatching(/^[ab_:.\\[\]/~01]{0,4}$/)).filter((k) => k !== '__proto__');
 const json = fc.letrec((tie) => ({
   value: fc.oneof({ depthSize: 'small' }, fc.string(), fc.integer(), fc.double({ noNaN: true }), fc.boolean(), fc.constant(null), tie('array'), tie('object')),
   array: fc.array(tie('value'), { maxLength: 4 }),
@@ -32,6 +32,22 @@ describe('unflatten(flatten(x))', () => {
         expect(unflatten(flatten(value, { delimiter }), { delimiter })).toEqual(value);
       }),
       { numRuns: 300 }
+    );
+  });
+
+  test.each([
+    ['bracket', '.'],
+    ['bracket', '__'],
+    ['bracket', '::'],
+    ['pointer', '.'],
+  ] as const)('Should give back any JSON object with the %s notation and the %j delimiter', (notation, delimiter) => {
+    // In bracket notation, a top-level empty key holding an array (`''` + `[0]`) reads back as the array itself.
+    const input = notation === 'bracket' ? json.filter((value) => !Array.isArray(value[''])) : json;
+    fc.assert(
+      fc.property(input, (value) => {
+        expect(unflatten(flatten(value, { notation, delimiter }), { notation, delimiter })).toEqual(value);
+      }),
+      { numRuns: 2000 }
     );
   });
 
@@ -90,6 +106,12 @@ describe('Unflatten<Flatten<T>>', () => {
   test('Should give back arrays with asArray', () => {
     type Row = { id: number; address: { city: string }; tags: string[] };
     expectTypeOf<Unflatten<Flatten<Row[]>, { asArray: true }>>().toEqualTypeOf<Row[]>();
+  });
+
+  test('Should give back plain data types with every notation', () => {
+    type Order = { id: number; items: { sku: string; qty: number }[]; 'a/b.c': { 'd[e~f': 1 } };
+    expectTypeOf<Unflatten<Flatten<Order, { notation: 'bracket' }>, { notation: 'bracket' }>>().toEqualTypeOf<Order>();
+    expectTypeOf<Unflatten<Flatten<Order, { notation: 'pointer' }>, { notation: 'pointer' }>>().toEqualTypeOf<Order>();
   });
 
   test('Should follow the delimiter on both sides', () => {

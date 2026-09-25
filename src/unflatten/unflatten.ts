@@ -1,14 +1,14 @@
 import { assign, isContainer, isPlainObject } from '../shared/guards.ts';
-import { isIndex, splitPath } from '../shared/path.ts';
+import { pathFormat, validateNotation } from '../shared/notation.ts';
+import { isIndex } from '../shared/path.ts';
+import { validate } from '../shared/validate.ts';
 import type { Unflatten, UnflattenOptions } from './types.ts';
 
 type Container = Record<string, unknown>;
 
 const hasOwn = (target: object, key: string): boolean => Object.prototype.hasOwnProperty.call(target, key);
 
-function validate(delimiter: string, escape: boolean, arrayLimit: number): void {
-  if (typeof delimiter !== 'string' || delimiter === '') throw new TypeError('`delimiter` must be a non-empty string');
-  if (escape && delimiter.includes('\\')) throw new RangeError('`delimiter` cannot contain `\\` while `escape` is enabled: it is the escape character');
+function validateArrayLimit(arrayLimit: number): void {
   if (arrayLimit !== Infinity && (!Number.isInteger(arrayLimit) || arrayLimit < 0)) throw new RangeError('`arrayLimit` must be a non-negative integer or Infinity');
 }
 
@@ -68,6 +68,10 @@ function restoreArrays(root: Container, arrayLimit: number, owned: WeakSet<objec
  * // Form fields named `address.city`, `address.zip`...
  * const body = unflatten(Object.fromEntries(new FormData(form)));
  *
+ * // Form-field style names, or JSON Pointers
+ * unflatten({ 'user[name]': 'Ada', 'user[tags][0]': 'admin' }, { notation: 'bracket' });
+ * unflatten({ '/user/name': 'Ada' }, { notation: 'pointer' });
+ *
  * // Back to the array given to `flatten`
  * unflatten({ '0.id': 1, '1.id': 2 }, { asArray: true });
  * // [{ id: 1 }, { id: 2 }]
@@ -76,13 +80,16 @@ function restoreArrays(root: Container, arrayLimit: number, owned: WeakSet<objec
  * @param input A flat object, such as the one returned by `flatten`.
  * @param options See {@link UnflattenOptions}.
  * @returns A new object (an array with `asArray`). Objects and arrays found in `input` are copied before keys are added to them.
- * @throws {TypeError} If `input` is not a plain object, or with `asArray` when a top-level key is not an array index.
+ * @throws {TypeError} If `input` is not a plain object, with `asArray` when a top-level key is not an array index, or with the `'pointer'` notation when a key does not start with `/`.
  */
 export function unflatten<T extends object>(input: T): Unflatten<T>;
 export function unflatten<T extends object, const O extends UnflattenOptions>(input: T, options: O): Unflatten<T, O>;
 export function unflatten(input: object, options: UnflattenOptions = {}): Record<string, unknown> | unknown[] {
-  const { delimiter = '.', object = false, overwrite = false, escape = true, arrayLimit = 1000, asArray = false, transformKey } = options;
-  validate(delimiter, escape, arrayLimit);
+  const { delimiter = '.', notation = 'dot', object = false, overwrite = false, escape = true, arrayLimit = 1000, asArray = false, transformKey } = options;
+  validateNotation(notation);
+  if (notation !== 'pointer') validate(delimiter, escape);
+  validateArrayLimit(arrayLimit);
+  const { split } = pathFormat(notation, delimiter, escape);
   if (!isPlainObject(input)) throw new TypeError('unflatten() expects a plain object');
 
   const result: Container = {};
@@ -90,7 +97,7 @@ export function unflatten(input: object, options: UnflattenOptions = {}): Record
   const owned = new WeakSet<object>([result]);
 
   entries: for (const key of Object.keys(input)) {
-    const segments = splitPath(key, delimiter, escape);
+    const segments = split(key);
     if (segments.includes('__proto__')) continue;
     if (transformKey) {
       for (let i = 0; i < segments.length; i++) if (!isIndex(segments[i], Infinity)) segments[i] = transformKey(segments[i]);
