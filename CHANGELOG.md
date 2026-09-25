@@ -1,6 +1,9 @@
-# Changelog
+# flattify
 
-## Version 1.0.0
+## 1.0.2
 
-* Initial commit
-* Added support to convert objects and arrays to "flat" JSON (plain JSON)
+- Added support to flatten arrays (`flattify(json, true)`) and tests.
+
+## 1.0.0
+
+- Initial release: convert JSON to "flat JSON".

@@ -1,0 +1,8 @@
+allowBuilds:
+  esbuild: true
+  # Downloads the workerd binary used by `pnpm run test:workers`
+  workerd: true
+
+overrides:
+  # GHSA-g7r4-m6w7-qqqr (transitive via vitest > vite)
+  esbuild: ^0.28.1

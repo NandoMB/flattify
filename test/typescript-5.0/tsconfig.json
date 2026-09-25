@@ -1,0 +1,13 @@
+// Compiled with TypeScript 5.0 (`pnpm run test:ts-legacy`): the oldest version supported, since the
+// public types rely on `const` type parameters. Checks that the built `.d.ts` parses and infers there.
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "strict": true,
+    "types": [],
+    "noEmit": true
+  },
+  "include": ["index.ts"]
+}
