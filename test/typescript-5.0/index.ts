@@ -1,4 +1,5 @@
 import { flatten, unflatten } from '../../dist/index.js';
+import { get, set } from '../../dist/path.js';
 
 const flat = flatten({
   id: 42,
@@ -26,4 +27,10 @@ const pointerId: number = pointer['/items/0/id'];
 const form = unflatten({ 'user[name]': 'Ada' } as { 'user[name]': string }, { notation: 'bracket' });
 const formName: string = form.user.name;
 
-export { id, city, tag, underscored, nestedCity, tags, firstId, pointerId, formName };
+const config = { db: { host: 'localhost', port: 5432 } };
+const port: number = get(config, 'db.port');
+set(config, 'db.port', 6543);
+// @ts-expect-error `port` is a number
+set(config, 'db.port', '6543');
+
+export { id, city, tag, underscored, nestedCity, tags, firstId, pointerId, formName, port };

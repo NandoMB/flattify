@@ -17,4 +17,5 @@
 
 export * from './flatten/index.ts';
 export * from './unflatten/index.ts';
+export type { Notation } from './shared/notation.ts';
 export type { Prettify } from './shared/types.ts';

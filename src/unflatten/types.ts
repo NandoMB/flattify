@@ -1,5 +1,6 @@
 import type { Notation } from '../shared/notation.ts';
-import type { IsAny, IsUnion, Option, Prettify, ReplaceAll } from '../shared/types.ts';
+import type { Split } from '../shared/path-types.ts';
+import type { IsAny, IsUnion, Option, Prettify } from '../shared/types.ts';
 
 export interface UnflattenOptions {
   /** Splits the keys into paths. Default: `'.'`. */
@@ -36,44 +37,6 @@ interface Context {
   escape: boolean;
   object: boolean;
 }
-
-/** Walks a key that contains `\` one character at a time, mirroring `splitPath`. */
-type SplitEscaped<K extends string, D extends string, Acc extends string = ''> = K extends `\\${infer Char}${infer Rest}`
-  ? SplitEscaped<Rest, D, `${Acc}${Char}`>
-  : K extends `${D}${infer Rest}`
-    ? [Acc, Rest]
-    : K extends `${infer Char}${infer Rest}`
-      ? SplitEscaped<Rest, D, `${Acc}${Char}`>
-      : [`${Acc}${K}`, never];
-
-/** `[first key, rest of the path]`, or `[key, never]` for the last key of a path. Mirrors `pathFormat().split`. */
-type Split<K extends string, C extends Context> = C['notation'] extends 'pointer'
-  ? SplitPointer<K>
-  : C['notation'] extends 'bracket'
-    ? SplitBracket<K, C['delimiter'], C['escape']>
-    : C['escape'] extends true
-      ? K extends `${infer Head}${C['delimiter']}${infer Rest}`
-        ? Head extends `${string}\\${string}` ? SplitEscaped<K, C['delimiter']> : [Head, Rest]
-        : K extends `${string}\\${string}` ? SplitEscaped<K, C['delimiter']> : [K, never]
-      : K extends `${infer Head}${C['delimiter']}${infer Rest}`
-        ? [Head, Rest]
-        : [K, never];
-
-type Unpointer<S extends string> = ReplaceAll<ReplaceAll<S, '~1', '/'>, '~0', '~'>;
-type SplitPointer<K extends string> = K extends `/${infer Path}` ? (Path extends `${infer Head}/${infer Rest}` ? [Unpointer<Head>, `/${Rest}`] : [Unpointer<Path>, never]) : never;
-
-type SplitBracket<K extends string, D extends string, E extends boolean, Acc extends string = ''> = K extends `[${infer Inner}]${infer Rest}`
-  ? Acc extends '' ? [Inner, Rest extends '' ? never : Rest extends `${D}${infer After}` ? After : Rest] : [Acc, K]
-  : E extends true
-    ? K extends `\\${infer Char}${infer Rest}`
-      ? SplitBracket<Rest, D, E, `${Acc}${Char}`>
-      : SplitBracketNext<K, D, E, Acc>
-    : SplitBracketNext<K, D, E, Acc>;
-type SplitBracketNext<K extends string, D extends string, E extends boolean, Acc extends string> = K extends `${D}${infer Rest}`
-  ? [Acc, Rest]
-  : K extends `${infer Char}${infer Rest}`
-    ? SplitBracket<Rest, D, E, `${Acc}${Char}`>
-    : [`${Acc}${K}`, never];
 
 type SplitKey<K, C extends Context> = K extends string | number ? Split<`${K}`, C> : never;
 

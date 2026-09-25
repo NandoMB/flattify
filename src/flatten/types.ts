@@ -23,9 +23,9 @@ export interface FlattenOptions {
 }
 
 /** Nesting levels TypeScript expands before typing deeper paths as `unknown`. */
-type TypeDepthLimit = 10;
+export type TypeDepthLimit = 10;
 
-interface Context {
+export interface Context {
   delimiter: string;
   notation: Notation;
   maxDepth: number | undefined;
@@ -34,10 +34,10 @@ interface Context {
   escape: boolean;
 }
 
-type Kind<V, C extends Context> = V extends Leaf ? 'leaf' : V extends readonly unknown[] ? (C['safe'] extends true ? 'leaf' : 'array') : V extends object ? ([keyof V] extends [never] ? 'unknown' : 'object') : 'leaf';
+export type Kind<V, C extends Context> = V extends Leaf ? 'leaf' : V extends readonly unknown[] ? (C['safe'] extends true ? 'leaf' : 'array') : V extends object ? ([keyof V] extends [never] ? 'unknown' : 'object') : 'leaf';
 
 type LeavesOf<V, C extends Context> = V extends unknown ? (Kind<V, C> extends 'leaf' ? V : never) : never;
-type ContainersOf<V, C extends Context> = V extends unknown ? (Kind<V, C> extends 'leaf' ? never : V) : never;
+export type ContainersOf<V, C extends Context> = V extends unknown ? (Kind<V, C> extends 'leaf' ? never : V) : never;
 
 /** Mirrors `escapeKey`: see `src/shared/path.ts`. `X` is `'['` in bracket notation. */
 type EscapeKey<K extends string, D extends string, X extends string> = NeedsEscape<K, D, X> extends true
@@ -50,7 +50,7 @@ type NeedsEscape<K extends string, D extends string, X extends string> = K exten
 type Overlaps<D extends string> = Prefixes<D> extends infer P ? (P extends string ? (`${P}${D}` extends `${D}${string}` ? P : never) : never) : never;
 type Prefixes<D extends string, Acc extends string = ''> = D extends `${infer Char}${infer Rest}` ? (Rest extends '' ? never : `${Acc}${Char}` | Prefixes<Rest, `${Acc}${Char}`>) : never;
 /** Mirrors `pathFormat().join`: appends key `K` to path `P` (the top level is at depth `[]`). */
-type Join<P extends string, K extends string | number, IsIndex extends boolean, D extends unknown[], C extends Context> = C['notation'] extends 'pointer'
+export type Join<P extends string, K extends string | number, IsIndex extends boolean, D extends unknown[], C extends Context> = C['notation'] extends 'pointer'
   ? `${P}/${K extends string ? ReplaceAll<ReplaceAll<K, '~', '~0'>, '/', '~1'> : K}`
   : C['notation'] extends 'bracket'
     ? IsIndex extends true
@@ -60,7 +60,7 @@ type Join<P extends string, K extends string | number, IsIndex extends boolean, 
 type JoinKey<P extends string, K extends string, D extends unknown[], C extends Context> = D extends [] ? K : `${P}${C['delimiter']}${K}`;
 
 /** Any path below `K`, for values whose shape is unknown. */
-type Below<K extends string, C extends Context> = C['notation'] extends 'pointer' ? `${K}/${string}` : C['notation'] extends 'bracket' ? `${K}${C['delimiter']}${string}` | `${K}[${string}` : `${K}${C['delimiter']}${string}`;
+export type Below<K extends string, C extends Context> = C['notation'] extends 'pointer' ? `${K}/${string}` : C['notation'] extends 'bracket' ? `${K}${C['delimiter']}${string}` | `${K}[${string}` : `${K}${C['delimiter']}${string}`;
 
 /** `?` is skipped for template keys (`` `tags.${number}.name` ``): they are index signatures, where it would only add `undefined`. */
 type Field<K extends string, V, Optional extends boolean> = [V] extends [never] ? {} : Optional extends true ? ({} extends Record<K, 1> ? { [_ in K]: V } : { [_ in K]?: V }) : { [_ in K]: V };
@@ -112,7 +112,7 @@ type ObjectEntries<T, P extends string, IsArray extends boolean, D extends unkno
 /** Index signatures (`[key: string]: V`) are left required: `?` would add `undefined` to their values. */
 type IsOptional<T, K extends keyof T> = string extends K ? false : number extends K ? false : {} extends Pick<T, K> ? true : false;
 
-type TupleEntries<T extends readonly unknown[]> = { [K in keyof T as K extends `${number}` ? K : never]: T[K] };
+export type TupleEntries<T extends readonly unknown[]> = { [K in keyof T as K extends `${number}` ? K : never]: T[K] };
 
 type FlatContainer<T, P extends string, D extends unknown[], C extends Context> = T extends readonly unknown[]
   ? number extends T['length']

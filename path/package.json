@@ -1,0 +1,6 @@
+{
+  "private": true,
+  "main": "../dist/path.cjs",
+  "module": "../dist/path.js",
+  "types": "../dist/path.d.cts"
+}
