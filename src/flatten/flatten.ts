@@ -1,4 +1,5 @@
 import { assign, isContainer } from '../shared/guards.ts';
+import { escapeKey } from '../shared/path.ts';
 import type { Flatten, FlattenOptions } from './types.ts';
 
 interface Frame {
@@ -8,12 +9,6 @@ interface Frame {
   isArray: boolean;
   path: string | undefined;
   depth: number;
-}
-
-/** Escapes `\` and the delimiter inside a single key so `unflatten` can split the path back. */
-export function escapeKey(key: string, delimiter: string): string {
-  if (!key.includes('\\') && !key.includes(delimiter)) return key;
-  return key.split('\\').join('\\\\').split(delimiter).join(`\\${delimiter}`);
 }
 
 function validate(delimiter: string, maxDepth: number, escape: boolean, circular: string): void {

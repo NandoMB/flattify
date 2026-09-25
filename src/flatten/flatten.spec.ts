@@ -1,6 +1,5 @@
 import { describe, expect, expectTypeOf, test } from 'vitest';
 import { flatten, type Flatten } from '../index.ts';
-import { escapeKey } from './flatten.ts';
 
 describe('flatten', () => {
   test('Should join nested keys with the delimiter', () => {
@@ -131,6 +130,10 @@ describe('flatten options', () => {
     expect(flatten({ 'a_b': { c: 1 } }, { delimiter: '_' })).toEqual({ 'a\\_b_c': 1 });
   });
 
+  test('escape: Should only escape keys that would be ambiguous with a longer delimiter', () => {
+    expect(flatten({ db: { MAX_CONN: 1, MAX_: 2 } }, { delimiter: '__' })).toEqual({ db__MAX_CONN: 1, 'db__MAX\\_': 2 });
+  });
+
   test('escape: Should leave keys as they are when off', () => {
     expect(flatten({ 'a.b': { c: 1 } }, { escape: false })).toEqual({ 'a.b.c': 1 });
   });
@@ -191,17 +194,6 @@ describe('flatten options', () => {
   });
 });
 
-describe('escapeKey', () => {
-  test.each([
-    ['plain', 'plain'],
-    ['a.b', 'a\\.b'],
-    ['a\\b', 'a\\\\b'],
-    ['a\\.b', 'a\\\\\\.b'],
-  ])('Should escape %j as %j', (key, expected) => {
-    expect(escapeKey(key, '.')).toBe(expected);
-  });
-});
-
 describe('Flatten type', () => {
   interface Address {
     street: string;
@@ -250,6 +242,8 @@ describe('Flatten type', () => {
   test('Should escape keys like the runtime', () => {
     expectTypeOf<Flatten<{ 'a.b': { 'c\\d': 1 } }>>().toEqualTypeOf<{ 'a\\.b.c\\\\d': 1 }>();
     expectTypeOf<Flatten<{ 'a.b': { c: 1 } }, { escape: false }>>().toEqualTypeOf<{ 'a.b.c': 1 }>();
+    expectTypeOf<Flatten<{ db: { MAX_CONN: 1; 'MAX_': 2 } }, { delimiter: '__' }>>().toEqualTypeOf<{ db__MAX_CONN: 1; 'db__MAX\\_': 2 }>();
+    expectTypeOf<Flatten<{ a: { ':': 1 } }, { delimiter: '::' }>>().toEqualTypeOf<{ 'a::\\:': 1 }>();
   });
 
   test('Should follow the options', () => {

@@ -35,10 +35,18 @@ type Kind<V, C extends Context> = V extends Leaf ? 'leaf' : V extends readonly u
 type LeavesOf<V, C extends Context> = V extends unknown ? (Kind<V, C> extends 'leaf' ? V : never) : never;
 type ContainersOf<V, C extends Context> = V extends unknown ? (Kind<V, C> extends 'leaf' ? never : V) : never;
 
-type Segment<K, C extends Context> = K extends number ? `${K}` : K extends string ? (C['escape'] extends true ? ReplaceAll<ReplaceAll<K, '\\', '\\\\'>, C['delimiter'], `\\${C['delimiter']}`> : K) : never;
+type Segment<K, C extends Context> = K extends number ? `${K}` : K extends string ? (C['escape'] extends true ? EscapeKey<K, C['delimiter']> : K) : never;
+
+/** Mirrors `escapeKey`: see `src/shared/path.ts`. */
+type EscapeKey<K extends string, D extends string> = NeedsEscape<K, D> extends true ? (D extends `${infer First}${string}` ? ReplaceAll<ReplaceAll<K, '\\', '\\\\'>, First, `\\${First}`> : K) : K;
+type NeedsEscape<K extends string, D extends string> = K extends `${string}\\${string}` | `${string}${D}${string}` ? true : [Overlaps<D>] extends [never] ? false : K extends `${string}${Overlaps<D>}` ? true : false;
+/** Proper prefixes of the delimiter that overlap with it: `':'` for `'::'`, as `':' + '::'` starts with `'::'`. */
+type Overlaps<D extends string> = Prefixes<D> extends infer P ? (P extends string ? (`${P}${D}` extends `${D}${string}` ? P : never) : never) : never;
+type Prefixes<D extends string, Acc extends string = ''> = D extends `${infer Char}${infer Rest}` ? (Rest extends '' ? never : `${Acc}${Char}` | Prefixes<Rest, `${Acc}${Char}`>) : never;
 type Join<P extends string, K extends string, D extends unknown[], C extends Context> = D extends [] ? K : `${P}${C['delimiter']}${K}`;
 
-type Field<K extends string, V, Optional extends boolean> = [V] extends [never] ? {} : Optional extends true ? { [_ in K]?: V } : { [_ in K]: V };
+/** `?` is skipped for template keys (`` `tags.${number}.name` ``): they are index signatures, where it would only add `undefined`. */
+type Field<K extends string, V, Optional extends boolean> = [V] extends [never] ? {} : Optional extends true ? ({} extends Record<K, 1> ? { [_ in K]: V } : { [_ in K]?: V }) : { [_ in K]: V };
 
 /** `true` when the container at depth `D` (the top-level one is `[]`) is walked into its children. */
 type CanDescend<D extends unknown[], C extends Context> = C['maxDepth'] extends number ? ([...D, unknown]['length'] extends C['maxDepth'] ? false : true) : true;
@@ -46,8 +54,8 @@ type CanDescend<D extends unknown[], C extends Context> = C['maxDepth'] extends 
 /** An empty container flattens to itself when `keepEmpty` is on: the key is required if it is always empty. */
 type EmptyField<V, K extends string, C extends Context> = C['keepEmpty'] extends true
   ? V extends readonly unknown[]
-    ? V extends readonly [] ? { [_ in K]: [] } : [] extends V ? { [_ in K]?: [] } : {}
-    : {} extends V ? { [_ in K]?: Record<string, never> } : {}
+    ? V extends readonly [] ? { [_ in K]: [] } : [] extends V ? Field<K, [], true> : {}
+    : {} extends V ? Field<K, Record<string, never>, true> : {}
   : {};
 
 type Nested<V, K extends string, D extends unknown[], C extends Context> = V extends unknown
