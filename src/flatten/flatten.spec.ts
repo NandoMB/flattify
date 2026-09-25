@@ -134,6 +134,21 @@ describe('flatten options', () => {
     expect(flatten({ db: { MAX_CONN: 1, MAX_: 2 } }, { delimiter: '__' })).toEqual({ db__MAX_CONN: 1, 'db__MAX\\_': 2 });
   });
 
+  test('notation: Should write array indices between brackets', () => {
+    expect(flatten({ items: [{ id: 1, tags: ['a'] }], 'a.b': { 'c[d': 1 } }, { notation: 'bracket' })).toEqual({ 'items[0].id': 1, 'items[0].tags[0]': 'a', 'a\\.b.c\\[d': 1 });
+    expect(flatten([{ id: 1 }], { notation: 'bracket' })).toEqual({ '[0].id': 1 });
+    expect(flatten({ a: { 0: 'x' } }, { notation: 'bracket' })).toEqual({ 'a.0': 'x' });
+  });
+
+  test('notation: Should write JSON Pointers', () => {
+    expect(flatten({ items: [{ id: 1 }], 'a/b': { 'm~n': 1, '': 2 } }, { notation: 'pointer' })).toEqual({ '/items/0/id': 1, '/a~1b/m~0n': 1, '/a~1b/': 2 });
+    expect(flatten([1], { notation: 'pointer' })).toEqual({ '/0': 1 });
+  });
+
+  test('notation: Should ignore delimiter and escape with pointers', () => {
+    expect(flatten({ 'a.b': { c: 1 } }, { notation: 'pointer', delimiter: '', escape: false })).toEqual({ '/a.b/c': 1 });
+  });
+
   test('escape: Should leave keys as they are when off', () => {
     expect(flatten({ 'a.b': { c: 1 } }, { escape: false })).toEqual({ 'a.b.c': 1 });
   });
@@ -185,6 +200,7 @@ describe('flatten options', () => {
     [{ maxDepth: 0 }, new RangeError('`maxDepth` must be a positive integer or Infinity')],
     [{ maxDepth: 1.5 }, new RangeError('`maxDepth` must be a positive integer or Infinity')],
     [{ circular: 'ignore' as 'skip' }, new TypeError("`circular` must be 'throw' or 'skip'")],
+    [{ notation: 'slash' as 'dot' }, new TypeError("`notation` must be 'dot', 'bracket' or 'pointer'")],
   ])('Should reject invalid options %j', (options, error) => {
     expect(() => flatten({ a: 1 }, options)).toThrow(error);
   });
@@ -255,11 +271,20 @@ describe('Flatten type', () => {
     expectTypeOf(flatten(input, { circular: 'skip' })).toEqualTypeOf<Flatten<typeof input>>();
   });
 
+  test('Should follow the notation', () => {
+    type Input = { items: { id: number }[]; point: [number, number]; 'a/b': { 'c.d': 1 } };
+    expectTypeOf<Flatten<Input, { notation: 'bracket' }>>().toEqualTypeOf<{ [x: `items[${number}].id`]: number; items?: []; 'point[0]': number; 'point[1]': number; 'a/b.c\\.d': 1 }>();
+    expectTypeOf<Flatten<Input, { notation: 'pointer' }>>().toEqualTypeOf<{ [x: `/items/${number}/id`]: number; '/items'?: []; '/point/0': number; '/point/1': number; '/a~1b/c.d': 1 }>();
+    expectTypeOf<Flatten<{ id: number }[], { notation: 'bracket' }>>().toEqualTypeOf<{ [x: `[${number}].id`]: number }>();
+    expectTypeOf<Flatten<{ data: object }, { notation: 'pointer' }>>().toEqualTypeOf<{ [x: `/data/${string}`]: unknown; '/data'?: unknown }>();
+  });
+
   test('Should widen the keys to string when an option is only known at runtime', () => {
     const options = { delimiter: '.' } as { delimiter: string };
     expectTypeOf(flatten({ a: { b: 1 } }, options)).toEqualTypeOf<Record<string, unknown>>();
     expectTypeOf<Flatten<{ a: 1 }, { safe: boolean }>>().toEqualTypeOf<Record<string, unknown>>();
     expectTypeOf<Flatten<{ a: 1 }, { maxDepth: number }>>().toEqualTypeOf<Record<string, unknown>>();
+    expectTypeOf<Flatten<{ a: 1 }, { notation: 'dot' | 'pointer' }>>().toEqualTypeOf<Record<string, unknown>>();
     expectTypeOf(flatten({ a: 1 }, { preserve: () => false })).toEqualTypeOf<Record<string, unknown>>();
   });
 

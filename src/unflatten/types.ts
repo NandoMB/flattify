@@ -1,8 +1,14 @@
-import type { IsAny, Option, Prettify } from '../shared/types.ts';
+import type { Notation } from '../shared/notation.ts';
+import type { IsAny, IsUnion, Option, Prettify, ReplaceAll } from '../shared/types.ts';
 
 export interface UnflattenOptions {
   /** Splits the keys into paths. Default: `'.'`. */
   delimiter?: string;
+  /**
+   * `'dot'` (`items.0.id`), `'bracket'` (`items[0].id`, also `items[0][id]` as in form fields) or
+   * `'pointer'` (`/items/0/id`, RFC 6901: every key must start with `/`). Default: `'dot'`.
+   */
+  notation?: Notation;
   /** Builds objects only: `{ 'list.0': 'a' }` becomes `{ list: { 0: 'a' } }` instead of `{ list: ['a'] }`. Default: `false`. */
   object?: boolean;
   /** Lets a later key replace a value in its way (`{ a: 1, 'a.b': 2 }` → `{ a: { b: 2 } }`). Otherwise the later key is skipped. Default: `false`. */
@@ -26,6 +32,7 @@ export interface UnflattenOptions {
 
 interface Context {
   delimiter: string;
+  notation: Notation;
   escape: boolean;
   object: boolean;
 }
@@ -39,14 +46,34 @@ type SplitEscaped<K extends string, D extends string, Acc extends string = ''> =
       ? SplitEscaped<Rest, D, `${Acc}${Char}`>
       : [`${Acc}${K}`, never];
 
-/** `[first key, rest of the path]`, or `[key, never]` for the last key of a path. */
-type Split<K extends string, C extends Context> = C['escape'] extends true
-  ? K extends `${infer Head}${C['delimiter']}${infer Rest}`
-    ? Head extends `${string}\\${string}` ? SplitEscaped<K, C['delimiter']> : [Head, Rest]
-    : K extends `${string}\\${string}` ? SplitEscaped<K, C['delimiter']> : [K, never]
-  : K extends `${infer Head}${C['delimiter']}${infer Rest}`
-    ? [Head, Rest]
-    : [K, never];
+/** `[first key, rest of the path]`, or `[key, never]` for the last key of a path. Mirrors `pathFormat().split`. */
+type Split<K extends string, C extends Context> = C['notation'] extends 'pointer'
+  ? SplitPointer<K>
+  : C['notation'] extends 'bracket'
+    ? SplitBracket<K, C['delimiter'], C['escape']>
+    : C['escape'] extends true
+      ? K extends `${infer Head}${C['delimiter']}${infer Rest}`
+        ? Head extends `${string}\\${string}` ? SplitEscaped<K, C['delimiter']> : [Head, Rest]
+        : K extends `${string}\\${string}` ? SplitEscaped<K, C['delimiter']> : [K, never]
+      : K extends `${infer Head}${C['delimiter']}${infer Rest}`
+        ? [Head, Rest]
+        : [K, never];
+
+type Unpointer<S extends string> = ReplaceAll<ReplaceAll<S, '~1', '/'>, '~0', '~'>;
+type SplitPointer<K extends string> = K extends `/${infer Path}` ? (Path extends `${infer Head}/${infer Rest}` ? [Unpointer<Head>, `/${Rest}`] : [Unpointer<Path>, never]) : never;
+
+type SplitBracket<K extends string, D extends string, E extends boolean, Acc extends string = ''> = K extends `[${infer Inner}]${infer Rest}`
+  ? Acc extends '' ? [Inner, Rest extends '' ? never : Rest extends `${D}${infer After}` ? After : Rest] : [Acc, K]
+  : E extends true
+    ? K extends `\\${infer Char}${infer Rest}`
+      ? SplitBracket<Rest, D, E, `${Acc}${Char}`>
+      : SplitBracketNext<K, D, E, Acc>
+    : SplitBracketNext<K, D, E, Acc>;
+type SplitBracketNext<K extends string, D extends string, E extends boolean, Acc extends string> = K extends `${D}${infer Rest}`
+  ? [Acc, Rest]
+  : K extends `${infer Char}${infer Rest}`
+    ? SplitBracket<Rest, D, E, `${Acc}${Char}`>
+    : [`${Acc}${K}`, never];
 
 type SplitKey<K, C extends Context> = K extends string | number ? Split<`${K}`, C> : never;
 
@@ -87,7 +114,7 @@ type ToArray<T, C extends Context> = C['object'] extends true
           : never
       : T;
 
-type IsWide<C extends Context> = string extends C['delimiter'] ? true : boolean extends C['escape'] ? true : boolean extends C['object'] ? true : false;
+type IsWide<C extends Context> = string extends C['delimiter'] ? true : IsUnion<C['notation']> extends true ? true : boolean extends C['escape'] ? true : boolean extends C['object'] ? true : false;
 
 /**
  * The object returned by `unflatten(T, O)`: the flat keys of `T` split into a nested object, with arrays
@@ -106,7 +133,7 @@ export type Unflatten<T, O extends UnflattenOptions = {}> = Root<
   IsAny<T> extends true
     ? Record<string, any>
     : [Option<O, 'transformKey', never>] extends [never]
-      ? UnflattenWith<T, { delimiter: Option<O, 'delimiter', '.'>; escape: Option<O, 'escape', true>; object: Option<O, 'object', false> }>
+      ? UnflattenWith<T, { delimiter: Option<O, 'delimiter', '.'>; notation: Option<O, 'notation', 'dot'>; escape: Option<O, 'escape', true>; object: Option<O, 'object', false> }>
       : Record<string, unknown>,
   Option<O, 'asArray', false>
 >;
@@ -118,7 +145,7 @@ type RootArray<R> = [keyof R] extends [never]
   : string extends keyof R
     ? R[keyof R][]
     : [keyof R] extends [`${number}`]
-      ? ToArray<R, { delimiter: '.'; escape: true; object: false }>
+      ? ToArray<R, { delimiter: '.'; notation: 'dot'; escape: true; object: false }>
       : never;
 
 type UnflattenWith<T, C extends Context> = IsWide<C> extends true ? Record<string, unknown> : T extends unknown ? Build<T, C> : never;

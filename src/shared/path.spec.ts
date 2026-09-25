@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest';
-import { escapeKey, isIndex, splitPath } from './path.ts';
+import { escapeKey, escapePointer, isIndex, splitBracketPath, splitPath, splitPointer } from './path.ts';
 
 describe('escapeKey', () => {
   test.each([
@@ -67,5 +67,70 @@ describe('isIndex', () => {
     ['a', false],
   ])('Should tell whether %j is an index up to 1000', (segment, expected) => {
     expect(isIndex(segment, 1000)).toBe(expected);
+  });
+});
+
+describe('splitBracketPath', () => {
+  test.each([
+    ['a.b[0].c', ['a', 'b', '0', 'c']],
+    ['a[b][0][c]', ['a', 'b', '0', 'c']],
+    ['[0].id', ['0', 'id']],
+    ['[0][1]', ['0', '1']],
+    ['a[0]', ['a', '0']],
+    ['a.[0]', ['a', '', '0']],
+    ['a[0]b', ['a', '0', 'b']],
+    ['a[]', ['a', '']],
+    ['a', ['a']],
+    ['', ['']],
+    ['a.', ['a', '']],
+    ['a[0', ['a[0']],
+    ['a]b', ['a]b']],
+    ['a\\[0]', ['a[0]']],
+    ['a\\.b[0]', ['a.b', '0']],
+    ['a[x\\]y]', ['a', 'x]y']],
+    ['a[x\\]', ['a[x]']],
+  ])('Should split %j', (path, expected) => {
+    expect(splitBracketPath(path, '.', true)).toEqual(expected);
+  });
+
+  test('Should use any delimiter', () => {
+    expect(splitBracketPath('a::b[0]::c', '::', true)).toEqual(['a', 'b', '0', 'c']);
+  });
+
+  test('Should read `\\` as a character when escape is off', () => {
+    expect(splitBracketPath('a\\[0]', '.', false)).toEqual(['a\\', '0']);
+    expect(splitBracketPath('a[x\\]', '.', false)).toEqual(['a', 'x\\']);
+  });
+
+  test('Should stay linear on hostile input', () => {
+    const path = `${'['.repeat(200_000)}]`;
+    const start = performance.now();
+    splitBracketPath(path, '.', true);
+    expect(performance.now() - start).toBeLessThan(1000);
+  });
+});
+
+describe('JSON Pointer', () => {
+  test.each([
+    ['a/b', 'a~1b'],
+    ['m~n', 'm~0n'],
+    ['~1', '~01'],
+    ['plain', 'plain'],
+  ])('Should escape %j as %j', (key, expected) => {
+    expect(escapePointer(key)).toBe(expected);
+  });
+
+  test.each([
+    ['/a/0/b', ['a', '0', 'b']],
+    ['/a~1b/m~0n', ['a/b', 'm~n']],
+    ['/~01', ['~1']],
+    ['/', ['']],
+    ['//', ['', '']],
+  ])('Should split %j', (pointer, expected) => {
+    expect(splitPointer(pointer)).toEqual(expected);
+  });
+
+  test.each(['', 'a/b', '#/a'])('Should reject %j, which does not start with "/"', (pointer) => {
+    expect(() => splitPointer(pointer)).toThrow(new TypeError(`A JSON Pointer must start with "/", got "${pointer}"`));
   });
 });

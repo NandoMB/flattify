@@ -21,4 +21,9 @@ const tags: string[] = nested.tags;
 const rows = unflatten(flatten([{ id: 1 }, { id: 2 }]), { asArray: true });
 const firstId: number = rows[0].id;
 
-export { id, city, tag, underscored, nestedCity, tags, firstId };
+const pointer = flatten({ items: [{ id: 1 }] }, { notation: 'pointer' });
+const pointerId: number = pointer['/items/0/id'];
+const form = unflatten({ 'user[name]': 'Ada' } as { 'user[name]': string }, { notation: 'bracket' });
+const formName: string = form.user.name;
+
+export { id, city, tag, underscored, nestedCity, tags, firstId, pointerId, formName };
