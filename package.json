@@ -1,28 +1,97 @@
 {
   "name": "flattify",
   "version": "1.0.2",
-  "description": "Convert JSON to \"Flat JSON\"",
-  "main": "index.js",
-  "scripts": {
-    "test": "./node_modules/mocha/bin/mocha --reporter spec ./test/flattify.js"
+  "description": "Flatten and unflatten nested objects with the resulting keys inferred by TypeScript. Safe against prototype pollution, zero dependencies.",
+  "author": "Fernando Machado Bernardino <fernandombernardino@gmail.com>",
+  "homepage": "https://github.com/NandoMB/flattify#readme",
+  "type": "module",
+  "license": "MIT",
+  "packageManager": "pnpm@12.5.1",
+  "bugs": {
+    "url": "https://github.com/NandoMB/flattify/issues"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/NandoMB/flattify.git"
   },
-  "keywords": [
-    "JSON",
-    "flat",
-    "plain"
-  ],
-  "author": "Fernando Machado Bernardino <fernandombernardino@gmail.com>",
-  "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/NandoMB/flattify/issues"
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
   },
-  "homepage": "https://github.com/NandoMB/flattify#readme",
+  "sideEffects": false,
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      }
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "dev": "vitest --project node",
+    "test": "vitest run --project node",
+    "coverage": "vitest run --project node --coverage",
+    "build": "tsdown",
+    "lint": "tsc",
+    "ci": "pnpm run lint && pnpm run test && pnpm run build && pnpm run lint:package",
+    "release": "node scripts/release.js",
+    "changeset:version": "changeset version && node scripts/sync-jsr-version.js",
+    "lint:package": "publint && attw --pack .",
+    "test:browser": "vitest run --project browser",
+    "test:bun": "bunx --bun vitest run --project node",
+    "test:deno": "deno run -A node_modules/vitest/vitest.mjs run --project node",
+    "test:workers": "node test/workers/run.js",
+    "test:ts-legacy": "node node_modules/typescript-5.0/bin/tsc -p test/typescript-5.0",
+    "lint:jsr": "deno publish --dry-run --allow-dirty",
+    "test:ci": "pnpm run ci && pnpm run test:ts-legacy && pnpm run test:workers && pnpm run test:browser && pnpm run test:bun && pnpm run test:deno && pnpm run lint:jsr"
+  },
   "devDependencies": {
-    "chai": "^3.5.0",
-    "mocha": "^2.4.5"
-  }
+    "@arethetypeswrong/cli": "^0.18.5",
+    "@changesets/cli": "^3.0.3",
+    "@types/node": "^26.6.2",
+    "@vitest/browser-playwright": "^5.0.1",
+    "@vitest/coverage-istanbul": "^5.0.1",
+    "fast-check": "^4.10.2",
+    "miniflare": "^4.20260730.0",
+    "playwright": "^1.63.0",
+    "publint": "^0.3.24",
+    "tsdown": "^0.23.0",
+    "typescript": "^7.0.2",
+    "typescript-5.0": "npm:typescript@5.0.4",
+    "vitest": "^5.0.1"
+  },
+  "keywords": [
+    "flattify",
+    "flatten",
+    "unflatten",
+    "flat",
+    "unflat",
+    "nest",
+    "unnest",
+    "nested",
+    "object",
+    "keys",
+    "paths",
+    "dot notation",
+    "dot-notation",
+    "bracket notation",
+    "json pointer",
+    "rfc6901",
+    "deep",
+    "typescript",
+    "type inference",
+    "prototype pollution",
+    "zero dependencies"
+  ]
 }
