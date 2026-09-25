@@ -55,3 +55,8 @@ project stays on Miniflare 4 because Miniflare 5 is still an alpha with a differ
 ### test/typescript-5.0
 Compiles a consumer file against the built `.d.ts` with TypeScript 5.0 (`pnpm run test:ts-legacy`),
 the oldest version supported: the public types rely on `const` type parameters, added in 5.0.
+
+### path/package.json
+Makes `import ... from 'flattify/path'` resolve with `moduleResolution: "node"` (node10) and older
+bundlers, which ignore the `exports` field of `package.json`. They look for a `path` folder in the
+package and follow its `main`, `module` and `types` fields to `dist/`. Checked by `attw` in `lint:package`.

@@ -33,10 +33,21 @@
         "default": "./dist/index.cjs"
       }
     },
+    "./path": {
+      "import": {
+        "types": "./dist/path.d.ts",
+        "default": "./dist/path.js"
+      },
+      "require": {
+        "types": "./dist/path.d.cts",
+        "default": "./dist/path.cjs"
+      }
+    },
     "./package.json": "./package.json"
   },
   "files": [
-    "dist"
+    "dist",
+    "path"
   ],
   "scripts": {
     "dev": "vitest --project node",
