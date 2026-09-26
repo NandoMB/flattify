@@ -54,6 +54,25 @@ describe('unflatten', () => {
     expect(meta).toEqual({ a: 1 });
   });
 
+  test('Should tell empty values apart even when Object.prototype was polluted by other code', () => {
+    const proto = Object.prototype as Record<string, unknown>;
+    proto.polluted = true;
+    try {
+      expect(Object.keys(unflatten({ 'a.b': 1, a: {} }, { overwrite: true }).a as object)).toEqual(['b']);
+    } finally {
+      delete proto.polluted;
+    }
+  });
+
+  test('Should never modify objects nested in values of the input', () => {
+    const inner = { y: 1 };
+    const list = [{ id: 1 }];
+    const input = { a: { x: inner }, 'a.x.z': 2, b: list, 'b.0.name': 'x' };
+    expect(unflatten(input)).toEqual({ a: { x: { y: 1, z: 2 } }, b: [{ id: 1, name: 'x' }] });
+    expect(inner).toEqual({ y: 1 });
+    expect(list).toEqual([{ id: 1 }]);
+  });
+
   test('Should keep values by reference', () => {
     const date = new Date();
     const nested = { deep: true };
@@ -152,6 +171,7 @@ describe('unflatten options', () => {
 
   test('notation: Should reject keys that are not JSON Pointers', () => {
     expect(() => unflatten({ 'a/b': 1 }, { notation: 'pointer' })).toThrow(new TypeError('A JSON Pointer must start with "/", got "a/b"'));
+    expect(() => unflatten({ '': 1 }, { notation: 'pointer' })).toThrow(new TypeError('The JSON Pointer "" (the whole document) cannot be a key of a flat object'));
   });
 
   test('notation: Should not pollute Object.prototype with any notation', () => {

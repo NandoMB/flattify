@@ -75,6 +75,21 @@ describe('flatten', () => {
     expect((result as Record<string, unknown>).isAdmin).toBeUndefined();
   });
 
+  test('Should walk plain objects whose prototype has keys, as from another realm, reading own keys only', () => {
+    const realmPrototype = Object.assign(Object.create(null) as object, { inherited: 1 });
+    const input = { a: Object.assign(Object.create(realmPrototype) as object, { own: 2 }) };
+    expect(flatten(input)).toEqual({ 'a.own': 2 });
+  });
+
+  test('Should let errors thrown by getters through', () => {
+    const input = Object.defineProperty({}, 'broken', { enumerable: true, get: () => { throw new Error('getter failed'); } });
+    expect(() => flatten(input)).toThrow(new Error('getter failed'));
+  });
+
+  test('Should keep working with many different delimiters', () => {
+    for (let i = 0; i < 100; i++) expect(flatten({ a: { b: 1 } }, { delimiter: `~${i}~` })).toEqual({ [`a~${i}~b`]: 1 });
+  });
+
   test('Should flatten objects nested 100k levels deep without overflowing the stack', () => {
     let deep: Record<string, unknown> = { leaf: true };
     for (let i = 0; i < 100_000; i++) deep = { n: deep };

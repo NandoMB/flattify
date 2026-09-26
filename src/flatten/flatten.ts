@@ -3,25 +3,18 @@ import { pathFormat, validateNotation } from '../shared/notation.ts';
 import { validate } from '../shared/validate.ts';
 import type { Flatten, FlattenOptions } from './types.ts';
 
+/** An object or array being walked: its keys, the next one to visit, and its path. */
 interface Frame {
   value: Record<string, unknown>;
-  /** Object keys to visit, or `undefined` for an array, walked by index. */
-  keys: string[] | undefined;
+  keys: string[];
   index: number;
-  length: number;
+  isArray: boolean;
   path: string | undefined;
   depth: number;
 }
 
 function frame(value: Record<string, unknown>, path: string | undefined, depth: number): Frame {
-  const keys = Array.isArray(value) ? undefined : Object.keys(value);
-  return { value, keys, index: 0, length: keys ? keys.length : (value as unknown as unknown[]).length, path, depth };
-}
-
-/** `true` for an object or array without any key, which `keepEmpty` keeps as a value. */
-function isEmpty(value: Record<string, unknown>): boolean {
-  for (const key in value) if (Object.prototype.hasOwnProperty.call(value, key)) return false;
-  return true;
+  return { value, keys: Object.keys(value), index: 0, isArray: Array.isArray(value), path, depth };
 }
 
 function validateWalk(maxDepth: number, circular: string): void {
@@ -33,7 +26,8 @@ function validateWalk(maxDepth: number, circular: string): void {
  * Flattens a nested object (or array) into a single-level object whose keys are the paths to each value.
  *
  * Only plain objects and arrays are walked: dates, maps, sets, class instances and any other object are
- * kept as values. The walk uses an explicit stack, so deeply nested input cannot overflow the call stack.
+ * kept as values. The walk uses an explicit stack instead of recursion, so deeply nested input cannot
+ * overflow the call stack.
  *
  * @example
  * ```ts
@@ -64,8 +58,8 @@ export function flatten(input: object, options: FlattenOptions = {}): Record<str
   validateNotation(notation);
   if (notation !== 'pointer') validate(delimiter, escape);
   validateWalk(maxDepth, circular);
-  const format = pathFormat(notation, delimiter, escape);
   if (!isContainer(input, safe)) throw new TypeError('flatten() expects a plain object or an array');
+  const { join } = pathFormat(notation, delimiter, escape);
 
   const result: Record<string, unknown> = {};
   // Containers on the current path, to tell a circular reference from the same object reused twice.
@@ -74,37 +68,29 @@ export function flatten(input: object, options: FlattenOptions = {}): Record<str
 
   while (stack.length > 0) {
     const current = stack[stack.length - 1];
-    if (current.index === current.length) {
+    if (current.index === current.keys.length) {
       stack.pop();
       ancestors.delete(current.value);
       continue;
     }
 
-    const { keys } = current;
-    const i = current.index++;
-    let path: string;
-    let value: unknown;
-    if (keys === undefined) {
-      if (!(i in current.value)) continue; // array hole
-      value = current.value[i];
-      path = format.join(current.path, String(i), true);
-    } else {
-      const key = keys[i];
-      value = current.value[key];
-      path = format.join(current.path, transformKey ? transformKey(key) : key, false);
-    }
+    const key = current.keys[current.index++];
+    const value = current.value[key];
+    const path = join(current.path, transformKey && !current.isArray ? transformKey(key) : key, current.isArray);
 
-    if (typeof value === 'object' && value !== null && isContainer(value, safe) && current.depth < maxDepth && !(preserve && preserve(path, value))) {
+    if (isContainer(value, safe) && current.depth < maxDepth && !(preserve && preserve(path, value))) {
       if (ancestors.has(value)) {
         if (circular === 'throw') throw new TypeError(`Circular reference at "${path}"`);
         continue;
       }
-      if (isEmpty(value)) {
+      const child = frame(value, path, current.depth + 1);
+      if (child.keys.length === 0) {
+        // An empty object or array is a value of its own.
         if (keepEmpty) assign(result, path, value);
         continue;
       }
       ancestors.add(value);
-      stack.push(frame(value, path, current.depth + 1));
+      stack.push(child);
       continue;
     }
 

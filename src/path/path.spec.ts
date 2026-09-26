@@ -62,6 +62,15 @@ describe('get', () => {
     expect(get({ a: { b: 1 } }, 'a_b', { delimiter: '_' })).toBe(1);
   });
 
+  test('Should read the JSON Pointer "" as the whole object, as JSON Schema validators report it', () => {
+    const o = order();
+    expect(get(o, '', { notation: 'pointer' })).toBe(o);
+    expect(has(o, '', { notation: 'pointer' })).toBe(true);
+    expect(del(o, '', { notation: 'pointer' })).toBe(false);
+    // @ts-expect-error the root has no key to set, which the types reject too
+    expect(() => set(o as unknown as Record<string, unknown>, '', 1, { notation: 'pointer' })).toThrow(new TypeError('set() cannot replace the whole object: the JSON Pointer "" has no key'));
+  });
+
   test('Should throw on a non-object input or invalid options', () => {
     expect(() => get(null as unknown as object, 'a')).toThrow(new TypeError('get() expects an object or an array'));
     expect(() => get({}, 'a', { notation: 'x' as 'dot' })).toThrow(TypeError);

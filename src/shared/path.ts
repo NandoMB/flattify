@@ -132,8 +132,9 @@ export function escapePointer(key: string): string {
   return key.replace(/~/g, '~0').replace(/\//g, '~1');
 }
 
-/** Splits a JSON Pointer (`/a/0/b~1c` → `['a', '0', 'b/c']`). */
+/** Splits a JSON Pointer (`/a/0/b~1c` → `['a', '0', 'b/c']`). `''` is the whole document: no keys. */
 export function splitPointer(pointer: string): string[] {
+  if (pointer === '') return [];
   if (!pointer.startsWith('/')) throw new TypeError(`A JSON Pointer must start with "/", got "${pointer}"`);
   return pointer
     .slice(1)
