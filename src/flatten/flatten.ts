@@ -52,6 +52,15 @@ function validateWalk(maxDepth: number, circular: string): void {
  * @throws {TypeError} If `input` is not a plain object or array, or on a circular reference when `circular` is `'throw'`.
  */
 export function flatten<T extends object>(input: T): Flatten<T>;
+/**
+ * Flattens `input` with options: the keys of the result follow `delimiter`, `notation`, `maxDepth`...
+ *
+ * @example
+ * ```ts
+ * flatten({ db: { host: 'localhost' } }, { delimiter: '__' });
+ * // { db__host: 'localhost' }
+ * ```
+ */
 export function flatten<T extends object, const O extends FlattenOptions>(input: T, options: O): Flatten<T, O>;
 export function flatten(input: object, options: FlattenOptions = {}): Record<string, unknown> {
   const { delimiter = '.', notation = 'dot', maxDepth = Infinity, safe = false, keepEmpty = true, escape = true, circular = 'throw', transformKey, preserve } = options;

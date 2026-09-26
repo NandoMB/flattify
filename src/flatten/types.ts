@@ -1,6 +1,7 @@
 import type { Notation } from '../shared/notation.ts';
 import type { IsAny, IsUnion, Leaf, MergeVariants, Option, Prettify, ReplaceAll, UnionToIntersection } from '../shared/types.ts';
 
+/** Options of `flatten`. Each one also changes the inferred keys of the result. */
 export interface FlattenOptions {
   /** Joins the keys of a path. Default: `'.'`. */
   delimiter?: string;
