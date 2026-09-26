@@ -12,42 +12,44 @@ function validateArrayLimit(arrayLimit: number): void {
   if (arrayLimit !== Infinity && (!Number.isInteger(arrayLimit) || arrayLimit < 0)) throw new RangeError('`arrayLimit` must be a non-negative integer or Infinity');
 }
 
+/** An object built for a key followed by an array index (`list` for `'list.0'`): it may become an array. */
+type Candidate = [parent: Container, key: string, object: Container];
+
 /**
  * Walks from `parent` into `key`, creating the object when it is missing. Returns `undefined` when a
  * value that is not an object or array is in the way and `overwrite` is off.
+ *
+ * `owned` holds the objects built by `unflatten`. Objects and arrays that came in as values of `input`
+ * are not in it: they are copied before new keys go in, never modified.
  */
-function descend(parent: Container, key: string, overwrite: boolean, owned: WeakSet<object>): Container | undefined {
+function descend(parent: Container, key: string, overwrite: boolean, owned: Set<object>, candidates: Candidate[] | undefined): Container | undefined {
   // Own properties only: `constructor` or `toString` must not resolve to what `Object.prototype` inherits.
   const current = hasOwn(parent, key) ? parent[key] : undefined;
-  if (typeof current === 'object' && current !== null && owned.has(current)) return current as Container;
+  if (isContainer(current, false) && owned.has(current)) return current;
   if (current !== undefined && !isContainer(current, false) && !overwrite) return undefined;
 
   const next: Container = {};
-  // An object or array coming from the input is copied before new keys go in, never modified.
   if (isContainer(current, false)) for (const k of Object.keys(current)) assign(next, k, current[k]);
   owned.add(next);
   assign(parent, key, next);
+  candidates?.push([parent, key, next]);
   return next;
 }
 
-/** Turns the objects built by `unflatten` whose keys are all array indices into arrays. */
-function restoreArrays(root: Container, arrayLimit: number, owned: WeakSet<object>): void {
-  const stack: Container[] = [root];
-  while (stack.length > 0) {
-    const node = stack.pop() as Container;
-    for (const key of Object.keys(node)) {
-      const child = node[key];
-      if (typeof child !== 'object' || child === null || !owned.has(child)) continue;
-      const keys = Object.keys(child);
-      let next = child as Container;
-      if (keys.length > 0 && keys.every((k) => isIndex(k, arrayLimit))) {
-        const array: unknown[] = [];
-        for (const k of keys) array[Number(k)] = (child as Container)[k];
-        next = array as unknown as Container;
-        node[key] = array;
-      }
-      stack.push(next);
-    }
+/**
+ * Turns the candidates whose keys are all array indices into arrays. They are visited from the last one
+ * built, so nested arrays are in place before the object that holds them is converted.
+ */
+function restoreArrays(candidates: Candidate[], arrayLimit: number): void {
+  for (let c = candidates.length - 1; c >= 0; c--) {
+    const [parent, key, object] = candidates[c];
+    // Replaced by a later key with `overwrite`.
+    if (parent[key] !== object) continue;
+    const keys = Object.keys(object);
+    if (!keys.every((k) => isIndex(k, arrayLimit))) continue;
+    const array: unknown[] = [];
+    for (const k of keys) array[Number(k)] = object[k];
+    parent[key] = array;
   }
 }
 
@@ -93,11 +95,12 @@ export function unflatten(input: object, options: UnflattenOptions = {}): Record
   if (!isPlainObject(input)) throw new TypeError('unflatten() expects a plain object');
 
   const result: Container = {};
-  // Objects created here, as opposed to objects that came in as values and must not be modified.
-  const owned = new WeakSet<object>([result]);
+  const owned = new Set<object>([result]);
+  const candidates: Candidate[] | undefined = object ? undefined : [];
 
   entries: for (const key of Object.keys(input)) {
     const segments = split(key);
+    if (segments.length === 0) throw new TypeError('The JSON Pointer "" (the whole document) cannot be a key of a flat object');
     if (segments.includes('__proto__')) continue;
     if (transformKey) {
       for (let i = 0; i < segments.length; i++) if (!isIndex(segments[i], Infinity)) segments[i] = transformKey(segments[i]);
@@ -105,7 +108,7 @@ export function unflatten(input: object, options: UnflattenOptions = {}): Record
 
     let target = result;
     for (let i = 0; i < segments.length - 1; i++) {
-      const next = descend(target, segments[i], overwrite, owned);
+      const next = descend(target, segments[i], overwrite, owned, candidates && isIndex(segments[i + 1], arrayLimit) ? candidates : undefined);
       if (next === undefined) continue entries;
       target = next;
     }
@@ -113,13 +116,14 @@ export function unflatten(input: object, options: UnflattenOptions = {}): Record
     const last = segments[segments.length - 1];
     const value = input[key];
     const current = hasOwn(target, last) ? target[last] : undefined;
-    // An empty object or array (kept by `flatten`) never replaces keys that were already set below it.
+    // Keys already set below this path are kept, unless `overwrite` replaces them with this value. An
+    // empty object or array (kept by `flatten`) never replaces them.
     const isEmpty = isContainer(value, false) && Object.keys(value).length === 0;
-    if (isContainer(current, false) && (isEmpty || !overwrite)) continue;
+    if (isContainer(current, false) && (!overwrite || isEmpty)) continue;
     assign(target, last, value);
   }
 
-  if (!object) restoreArrays(result, arrayLimit, owned);
+  if (candidates) restoreArrays(candidates, arrayLimit);
   return asArray ? toRootArray(result, arrayLimit) : result;
 }
 

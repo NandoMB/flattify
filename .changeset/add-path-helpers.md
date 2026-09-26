@@ -9,3 +9,4 @@ Add the `flattify/path` entry to read and write nested values by path, with auto
 - `has`, `del`, `paths` (the paths `flatten` produces), `parsePath`, `stringifyPath` and `escapeKey`
 - `Path<T>`, `Get<T, P>` and `SetValue<T, P>` types
 - Every helper takes the `delimiter`, `notation` and `escape` options, and is safe against prototype pollution
+- The JSON Pointer `''` is the whole document, as JSON Schema validators report errors at the root: `get(obj, '', { notation: 'pointer' })` returns `obj`

@@ -53,13 +53,7 @@ export function splitPath(path: string, delimiter: string, escape: boolean): str
 
 /** Canonical array indices (`0`, `1`, `42`, not `01` or `-1`) up to `limit`. */
 export function isIndex(segment: string, limit: number): boolean {
-  const length = segment.length;
-  if (length === 0 || (length > 1 && segment.charCodeAt(0) === 48)) return false;
-  for (let i = 0; i < length; i++) {
-    const code = segment.charCodeAt(i);
-    if (code < 48 || code > 57) return false;
-  }
-  return Number(segment) <= limit;
+  return /^(?:0|[1-9]\d*)$/.test(segment) && Number(segment) <= limit;
 }
 
 /**
@@ -132,8 +126,9 @@ export function escapePointer(key: string): string {
   return key.replace(/~/g, '~0').replace(/\//g, '~1');
 }
 
-/** Splits a JSON Pointer (`/a/0/b~1c` → `['a', '0', 'b/c']`). */
+/** Splits a JSON Pointer (`/a/0/b~1c` → `['a', '0', 'b/c']`). `''` is the whole document: no keys. */
 export function splitPointer(pointer: string): string[] {
+  if (pointer === '') return [];
   if (!pointer.startsWith('/')) throw new TypeError(`A JSON Pointer must start with "/", got "${pointer}"`);
   return pointer
     .slice(1)

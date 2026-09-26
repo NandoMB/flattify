@@ -60,3 +60,15 @@ the oldest version supported: the public types rely on `const` type parameters, 
 Makes `import ... from 'flattify/path'` resolve with `moduleResolution: "node"` (node10) and older
 bundlers, which ignore the `exports` field of `package.json`. They look for a `path` folder in the
 package and follow its `main`, `module` and `types` fields to `dist/`. Checked by `attw` in `lint:package`.
+
+### bench/
+- `pnpm bench`: speed of `flatten` and `unflatten` against other libraries, to watch for regressions.
+- `pnpm size`: minified and gzipped size of each library's functions, for the README table.
+- `pnpm claims`: `claims.spec.ts` checks every statement the README makes about the other libraries,
+  against the versions installed from `package.json`. It runs in CI, so a dependency update that
+  changes a behavior fails the build until the README is fixed.
+
+The other libraries are dev dependencies only: they are never part of the published package.
+`vitest.config.mts` loads `dist/` with Node.js itself, as the other libraries are loaded from
+`node_modules`; through Vitest's module runner, every import between flattify's chunks would go
+through a getter and make it look slower than it is.

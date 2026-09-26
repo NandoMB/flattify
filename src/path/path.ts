@@ -39,7 +39,8 @@ function checkTarget(input: unknown, name: string): void {
 }
 
 /**
- * Reads the value at `path`, or `undefined` when a key is missing along the way.
+ * Reads the value at `path`, or `undefined` when a key is missing along the way. The JSON Pointer `''`
+ * is `obj` itself.
  *
  * The path is autocompleted and the result typed from `obj`. Plain objects and arrays are read through
  * their own keys only: `get({}, 'constructor')` is `undefined`.
@@ -111,6 +112,7 @@ export function set(obj: object, path: string, value: unknown, options: SetOptio
   const { object = false, arrayLimit = 1000 } = options;
   if (arrayLimit !== Infinity && (!Number.isInteger(arrayLimit) || arrayLimit < 0)) throw new RangeError('`arrayLimit` must be a non-negative integer or Infinity');
   const segments = formatOf(options).split(path);
+  if (segments.length === 0) throw new TypeError('set() cannot replace the whole object: the JSON Pointer "" has no key');
   if (segments.includes('__proto__')) return obj;
 
   let target = obj as Target;
@@ -142,6 +144,7 @@ export function del<T extends object, O extends PathOptions = {}>(obj: T, path: 
 export function del(obj: object, path: string, options: PathOptions = {}): boolean {
   checkTarget(obj, 'del');
   const segments = formatOf(options).split(path);
+  if (segments.length === 0) return false;
   let target: unknown = obj;
   for (let i = 0; i < segments.length - 1; i++) {
     if (!isTraversable(target)) return false;

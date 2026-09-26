@@ -3,6 +3,8 @@ import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
   test: {
+    // bench/ has its own config: `pnpm bench` and `pnpm claims`.
+    include: ['src/**/*.spec.ts'],
     allowOnly: true,
     coverage: {
       provider: 'istanbul',

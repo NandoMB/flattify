@@ -27,14 +27,9 @@ export function pathFormat(notation: Notation, delimiter: string, escape: boolea
   }
   const bracket = notation === 'bracket';
   const escapeKey = escape ? keyEscaper(delimiter, bracket ? '[' : '') : undefined;
-  const digitDelimiter = /\d/.test(delimiter);
   return {
     join: (path, key, isIndex) => {
-      if (isIndex) {
-        if (bracket) return `${path ?? ''}[${key}]`;
-        // Array indices are digits: they only need escaping when the delimiter holds a digit.
-        if (!digitDelimiter) return path === undefined ? key : path + delimiter + key;
-      }
+      if (bracket && isIndex) return `${path ?? ''}[${key}]`;
       const segment = escapeKey ? escapeKey(key) : key;
       return path === undefined ? segment : path + delimiter + segment;
     },

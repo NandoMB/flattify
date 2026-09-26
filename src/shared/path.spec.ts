@@ -130,7 +130,11 @@ describe('JSON Pointer', () => {
     expect(splitPointer(pointer)).toEqual(expected);
   });
 
-  test.each(['', 'a/b', '#/a'])('Should reject %j, which does not start with "/"', (pointer) => {
+  test('Should read "" as the whole document', () => {
+    expect(splitPointer('')).toEqual([]);
+  });
+
+  test.each(['a/b', '#/a'])('Should reject %j, which does not start with "/"', (pointer) => {
     expect(() => splitPointer(pointer)).toThrow(new TypeError(`A JSON Pointer must start with "/", got "${pointer}"`));
   });
 });
