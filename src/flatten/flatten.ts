@@ -5,11 +5,23 @@ import type { Flatten, FlattenOptions } from './types.ts';
 
 interface Frame {
   value: Record<string, unknown>;
-  keys: string[];
+  /** Object keys to visit, or `undefined` for an array, walked by index. */
+  keys: string[] | undefined;
   index: number;
-  isArray: boolean;
+  length: number;
   path: string | undefined;
   depth: number;
+}
+
+function frame(value: Record<string, unknown>, path: string | undefined, depth: number): Frame {
+  const keys = Array.isArray(value) ? undefined : Object.keys(value);
+  return { value, keys, index: 0, length: keys ? keys.length : (value as unknown as unknown[]).length, path, depth };
+}
+
+/** `true` for an object or array without any key, which `keepEmpty` keeps as a value. */
+function isEmpty(value: Record<string, unknown>): boolean {
+  for (const key in value) if (Object.prototype.hasOwnProperty.call(value, key)) return false;
+  return true;
 }
 
 function validateWalk(maxDepth: number, circular: string): void {
@@ -58,32 +70,41 @@ export function flatten(input: object, options: FlattenOptions = {}): Record<str
   const result: Record<string, unknown> = {};
   // Containers on the current path, to tell a circular reference from the same object reused twice.
   const ancestors = new Set<object>([input]);
-  const stack: Frame[] = [{ value: input, keys: Object.keys(input), index: 0, isArray: Array.isArray(input), path: undefined, depth: 1 }];
+  const stack: Frame[] = [frame(input, undefined, 1)];
 
   while (stack.length > 0) {
-    const frame = stack[stack.length - 1];
-    if (frame.index === frame.keys.length) {
+    const current = stack[stack.length - 1];
+    if (current.index === current.length) {
       stack.pop();
-      ancestors.delete(frame.value);
+      ancestors.delete(current.value);
       continue;
     }
 
-    const key = frame.keys[frame.index++];
-    const value = frame.value[key];
-    const path = format.join(frame.path, transformKey && !frame.isArray ? transformKey(key) : key, frame.isArray);
+    const { keys } = current;
+    const i = current.index++;
+    let path: string;
+    let value: unknown;
+    if (keys === undefined) {
+      if (!(i in current.value)) continue; // array hole
+      value = current.value[i];
+      path = format.join(current.path, String(i), true);
+    } else {
+      const key = keys[i];
+      value = current.value[key];
+      path = format.join(current.path, transformKey ? transformKey(key) : key, false);
+    }
 
-    if (isContainer(value, safe) && frame.depth < maxDepth && !(preserve && preserve(path, value))) {
+    if (typeof value === 'object' && value !== null && isContainer(value, safe) && current.depth < maxDepth && !(preserve && preserve(path, value))) {
       if (ancestors.has(value)) {
         if (circular === 'throw') throw new TypeError(`Circular reference at "${path}"`);
         continue;
       }
-      const keys = Object.keys(value);
-      if (keys.length === 0) {
+      if (isEmpty(value)) {
         if (keepEmpty) assign(result, path, value);
         continue;
       }
       ancestors.add(value);
-      stack.push({ value, keys, index: 0, isArray: Array.isArray(value), path, depth: frame.depth + 1 });
+      stack.push(frame(value, path, current.depth + 1));
       continue;
     }
 

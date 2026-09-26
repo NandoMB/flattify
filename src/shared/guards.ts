@@ -6,7 +6,7 @@
 export function isPlainObject(input: unknown): input is Record<string, unknown> {
   if (typeof input !== 'object' || input === null) return false;
   const proto: unknown = Object.getPrototypeOf(input);
-  return proto === null || Object.getPrototypeOf(proto) === null;
+  return proto === Object.prototype || proto === null || Object.getPrototypeOf(proto) === null;
 }
 
 /** Plain objects, and arrays unless `safe` keeps them as values. */
@@ -19,9 +19,11 @@ export function isContainer(input: unknown, safe: boolean): input is Record<stri
  * `target` instead of creating a key.
  */
 export function assign(target: Record<string, unknown>, key: string, value: unknown): void {
-  if (key === '__proto__') {
-    Object.defineProperty(target, key, { value, writable: true, enumerable: true, configurable: true });
-  } else {
-    target[key] = value;
-  }
+  if (key === '__proto__') defineOwn(target, key, value);
+  else target[key] = value;
+}
+
+/** Kept apart from `assign` so the common path stays small enough for engines to inline. */
+function defineOwn(target: object, key: string, value: unknown): void {
+  Object.defineProperty(target, key, { value, writable: true, enumerable: true, configurable: true });
 }
