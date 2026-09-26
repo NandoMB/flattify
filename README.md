@@ -1,4 +1,4 @@
-# [flattify](https://github.com/NandoMB/flattify)
+# [Flattify](https://github.com/NandoMB/flattify)
 
 [![npm version](https://img.shields.io/npm/v/flattify.svg)](https://www.npmjs.com/package/flattify)
 [![JSR](https://jsr.io/badges/@nandomb/flattify)](https://jsr.io/@nandomb/flattify)
@@ -17,14 +17,14 @@ Turn nested objects into flat `path → value` pairs **and back, without losing 
 - **Checked, not claimed:** 100% test coverage, thousands of random round trips per run, and every [comparison](#why-flattify) with other libraries verified in CI
 - Zero dependencies, ESM and CommonJS, on [npm](https://www.npmjs.com/package/flattify) and [JSR](https://jsr.io/@nandomb/flattify). Runs on Node.js, Bun, Deno, browsers and Cloudflare Workers
 
-> Upgrading from flattify 1.x? See [Migrating](#migrating).
+> Upgrading from Flattify 1.x? See [Migrating](#migrating).
 
 ## Contents
 
 - [Installation](#installation)
 - [Quick start](#quick-start)
 - [Data integrity](#data-integrity)
-- [Why flattify?](#why-flattify)
+- [Why Flattify?](#why-flattify)
 - [Use cases](#use-cases)
 - [API](#api): [`flatten`](#flatteninput-options), [`unflatten`](#unflatteninput-options), [notations](#notations), [`flattify/path`](#flattifypath)
 - [Types](#types)
@@ -88,7 +88,7 @@ back.items[0].sku;        // string
 
 ## Data integrity
 
-Most libraries lose something on the way: a `Date` becomes `{}`, `null` disappears, an empty list vanishes, `'utm.source'` is split in two. flattify keeps all of it:
+Most libraries lose something on the way: a `Date` becomes `{}`, `null` disappears, an empty list vanishes, `'utm.source'` is split in two. Flattify keeps all of it:
 
 ```ts
 const input = {
@@ -123,11 +123,11 @@ back['utm.source'];                  // 'newsletter', still one key
 
 Each guarantee is covered by the test suite, and the round trip is checked on thousands of random objects on every run ([fast-check](https://fast-check.dev)), for every notation.
 
-## Why flattify?
+## Why Flattify?
 
 Every row is checked by [`bench/claims.spec.ts`](./bench/claims.spec.ts) against flat 6.0.1, flattie 1.1.1, nestie 1.0.3, es-toolkit 1.52.0 and radashi 12.9.6, on every change in CI (`pnpm claims`).
 
-| | flattify | [flat](https://www.npmjs.com/package/flat) | [flattie](https://www.npmjs.com/package/flattie) / [nestie](https://www.npmjs.com/package/nestie) | [es-toolkit](https://www.npmjs.com/package/es-toolkit) | [radashi](https://www.npmjs.com/package/radashi) |
+| | Flattify | [flat](https://www.npmjs.com/package/flat) | [flattie](https://www.npmjs.com/package/flattie) / [nestie](https://www.npmjs.com/package/nestie) | [es-toolkit](https://www.npmjs.com/package/es-toolkit) | [radashi](https://www.npmjs.com/package/radashi) |
 | --- | --- | --- | --- | --- | --- |
 | Keys with the delimiter survive the round trip | ✅ | ❌ | ❌ | – | ❌ |
 | Keeps `Date` and `Map` as values | ✅ | ✅ | ❌ dropped | ✅ | ✅ |
@@ -144,7 +144,7 @@ Every row is checked by [`bench/claims.spec.ts`](./bench/claims.spec.ts) against
 | ESM and CommonJS | ✅ | ❌ v6 is ESM only | ✅ | ✅ | ✅ |
 | Size (min + gzip) | 2.3 kB | 0.7 kB | 0.35 kB | 0.34 kB | 0.8 kB |
 
-flattify is bigger because it does more: the checks above, three notations, escaping and clear error messages. `flattify/path` is a separate import, so it only counts when you use it.
+Flattify is bigger because it does more: the checks above, three notations, escaping and clear error messages. `flattify/path` is a separate import, so it only counts when you use it.
 
 ## Use cases
 
@@ -308,7 +308,7 @@ CI runs the tests on Node.js 22, 24 and 26, Bun, Deno, Chromium, Firefox, WebKit
 
 Same option names (`delimiter`, `maxDepth`, `safe`, `object`, `overwrite`, `transformKey`), with safer defaults:
 
-| | `flat` | flattify |
+| | `flat` | Flattify |
 | --- | --- | --- |
 | Result type | you pass it: `flatten<T, R>()` | inferred |
 | Keys with the delimiter | split in two on the way back | escaped; `{ escape: false }` for the old behavior |
@@ -318,7 +318,7 @@ Same option names (`delimiter`, `maxDepth`, `safe`, `object`, `overwrite`, `tran
 | Class instances | flattened | kept as values |
 | Circular references | stack overflow | `TypeError`, or `circular: 'skip'` |
 
-### From flattify 1.x
+### From Flattify 1.x
 
 2.0 is a rewrite with named exports:
 
