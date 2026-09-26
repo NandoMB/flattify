@@ -1,5 +1,11 @@
 # flattify
 
+## 2.0.1
+
+### Patch Changes
+
+- 7a41461: Document every exported symbol: the options interfaces (`FlattenOptions`, `UnflattenOptions`, `PathOptions`, `SetOptions`) and every overload of `flatten`, `unflatten`, `get`, `set` and `paths` now have JSDoc with examples, shown in editors and on JSR.
+
 ## 2.0.0
 
 ### Major Changes
