@@ -1,6 +1,6 @@
 {
   "name": "flattify",
-  "version": "1.0.2",
+  "version": "2.0.0",
   "description": "Flatten and unflatten nested objects without losing data: dates, nulls, empty objects and dotted keys survive the round trip. Typed paths, safe on untrusted input, zero dependencies.",
   "author": "Fernando Machado Bernardino <fernandombernardino@gmail.com>",
   "homepage": "https://github.com/NandoMB/flattify#readme",
