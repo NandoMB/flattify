@@ -18,22 +18,7 @@ export function validateNotation(notation: string): void {
   if (notation !== 'dot' && notation !== 'bracket' && notation !== 'pointer') throw new TypeError("`notation` must be 'dot', 'bracket' or 'pointer'");
 }
 
-const formats = new Map<string, PathFormat>();
-
-/** The path format for these options, built once and reused: most calls use the same few options. */
 export function pathFormat(notation: Notation, delimiter: string, escape: boolean): PathFormat {
-  const cacheKey = `${notation}${escape ? 1 : 0}${delimiter}`;
-  let format = formats.get(cacheKey);
-  if (format === undefined) {
-    // Bounded, in case delimiters are generated dynamically.
-    if (formats.size >= 64) formats.clear();
-    format = createPathFormat(notation, delimiter, escape);
-    formats.set(cacheKey, format);
-  }
-  return format;
-}
-
-function createPathFormat(notation: Notation, delimiter: string, escape: boolean): PathFormat {
   if (notation === 'pointer') {
     return {
       join: (path, key) => `${path ?? ''}/${escapePointer(key)}`,

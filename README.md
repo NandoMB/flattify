@@ -142,7 +142,7 @@ Every row is checked by [`bench/claims.spec.ts`](./bench/claims.spec.ts) against
 | Bracket notation and JSON Pointer | ✅ | ❌ | ❌ | ❌ | ❌ |
 | `get` / `set` with autocompleted paths | ✅ | ❌ | ❌ | ❌ | ❌ |
 | ESM and CommonJS | ✅ | ❌ v6 is ESM only | ✅ | ✅ | ✅ |
-| Size (min + gzip) | 2.4 kB | 0.7 kB | 0.35 kB | 0.34 kB | 0.8 kB |
+| Size (min + gzip) | 2.3 kB | 0.7 kB | 0.35 kB | 0.34 kB | 0.8 kB |
 
 flattify is bigger because it does more: the checks above, three notations, escaping and clear error messages. `flattify/path` is a separate import, so it only counts when you use it.
 

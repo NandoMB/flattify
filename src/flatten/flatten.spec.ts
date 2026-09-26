@@ -86,10 +86,6 @@ describe('flatten', () => {
     expect(() => flatten(input)).toThrow(new Error('getter failed'));
   });
 
-  test('Should keep working with many different delimiters', () => {
-    for (let i = 0; i < 100; i++) expect(flatten({ a: { b: 1 } }, { delimiter: `~${i}~` })).toEqual({ [`a~${i}~b`]: 1 });
-  });
-
   test('Should flatten objects nested 100k levels deep without overflowing the stack', () => {
     let deep: Record<string, unknown> = { leaf: true };
     for (let i = 0; i < 100_000; i++) deep = { n: deep };

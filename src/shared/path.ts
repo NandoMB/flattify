@@ -53,13 +53,7 @@ export function splitPath(path: string, delimiter: string, escape: boolean): str
 
 /** Canonical array indices (`0`, `1`, `42`, not `01` or `-1`) up to `limit`. */
 export function isIndex(segment: string, limit: number): boolean {
-  const length = segment.length;
-  if (length === 0 || (length > 1 && segment.charCodeAt(0) === 48)) return false;
-  for (let i = 0; i < length; i++) {
-    const code = segment.charCodeAt(i);
-    if (code < 48 || code > 57) return false;
-  }
-  return Number(segment) <= limit;
+  return /^(?:0|[1-9]\d*)$/.test(segment) && Number(segment) <= limit;
 }
 
 /**

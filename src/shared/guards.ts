@@ -19,11 +19,6 @@ export function isContainer(input: unknown, safe: boolean): input is Record<stri
  * `target` instead of creating a key.
  */
 export function assign(target: Record<string, unknown>, key: string, value: unknown): void {
-  if (key === '__proto__') defineOwn(target, key, value);
+  if (key === '__proto__') Object.defineProperty(target, key, { value, writable: true, enumerable: true, configurable: true });
   else target[key] = value;
-}
-
-/** Kept apart from `assign` so the common path stays small enough for engines to inline. */
-function defineOwn(target: object, key: string, value: unknown): void {
-  Object.defineProperty(target, key, { value, writable: true, enumerable: true, configurable: true });
 }
