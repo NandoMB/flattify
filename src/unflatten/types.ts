@@ -2,6 +2,7 @@ import type { Notation } from '../shared/notation.ts';
 import type { Split } from '../shared/path-types.ts';
 import type { IsAny, IsUnion, Option, Prettify } from '../shared/types.ts';
 
+/** Options of `unflatten`. Each one also changes the inferred type of the result. */
 export interface UnflattenOptions {
   /** Splits the keys into paths. Default: `'.'`. */
   delimiter?: string;

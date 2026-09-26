@@ -55,7 +55,24 @@ function checkTarget(input: unknown, name: string): void {
  * ```
  */
 export function get<T extends object, P extends Path<T>>(obj: T, path: P): Get<T, P>;
+/**
+ * Reads the value at `path`, written in another `delimiter` or `notation`.
+ *
+ * @example
+ * ```ts
+ * get(order, '/items/0/sku', { notation: 'pointer' }); // 'BOOK-1'
+ * ```
+ */
 export function get<T extends object, P extends Path<T, O>, const O extends PathOptions>(obj: T, path: P, options: O): Get<T, P, O>;
+/**
+ * Reads the value at a path only known at runtime, such as one coming from user input: the result is
+ * `unknown`.
+ *
+ * @example
+ * ```ts
+ * const value = get(data, error.instancePath, { notation: 'pointer' }); // unknown
+ * ```
+ */
 export function get(obj: object, path: string, options?: PathOptions): unknown;
 export function get(obj: object, path: string, options: PathOptions = {}): unknown {
   checkTarget(obj, 'get');
@@ -106,6 +123,15 @@ export function has(obj: object, path: string, options: PathOptions = {}): boole
  * ```
  */
 export function set<T extends object, P extends Path<T>>(obj: T, path: P, value: SetValue<T, P>): T;
+/**
+ * Sets the value at `path`, written in another `delimiter` or `notation`, or with `object` and
+ * `arrayLimit` to choose what is created for missing keys.
+ *
+ * @example
+ * ```ts
+ * set(config, 'db__port', 6543, { delimiter: '__' });
+ * ```
+ */
 export function set<T extends object, P extends Path<T, O>, const O extends SetOptions>(obj: T, path: P, value: SetValue<T, P, O>, options: O): T;
 export function set(obj: object, path: string, value: unknown, options: SetOptions = {}): object {
   checkTarget(obj, 'set');
@@ -165,6 +191,14 @@ export function del(obj: object, path: string, options: PathOptions = {}): boole
  * ```
  */
 export function paths<T extends object>(obj: T): Extract<keyof Flatten<T>, string>[];
+/**
+ * The paths `flatten(obj, options)` produces, with the same options.
+ *
+ * @example
+ * ```ts
+ * paths({ user: { tags: ['admin'] } }, { notation: 'bracket' }); // ['user.tags[0]']
+ * ```
+ */
 export function paths<T extends object, const O extends FlattenOptions>(obj: T, options: O): Extract<keyof Flatten<T, O>, string>[];
 export function paths(obj: object, options: FlattenOptions = {}): string[] {
   return Object.keys(flatten(obj, options));

@@ -85,6 +85,16 @@ function restoreArrays(candidates: Candidate[], arrayLimit: number): void {
  * @throws {TypeError} If `input` is not a plain object, with `asArray` when a top-level key is not an array index, or with the `'pointer'` notation when a key does not start with `/`.
  */
 export function unflatten<T extends object>(input: T): Unflatten<T>;
+/**
+ * Rebuilds a nested object from `input` with options: another `delimiter` or `notation`, `asArray` to get
+ * an array back, `overwrite`, `arrayLimit`...
+ *
+ * @example
+ * ```ts
+ * unflatten({ '0.id': 1, '1.id': 2 }, { asArray: true });
+ * // [{ id: 1 }, { id: 2 }]
+ * ```
+ */
 export function unflatten<T extends object, const O extends UnflattenOptions>(input: T, options: O): Unflatten<T, O>;
 export function unflatten(input: object, options: UnflattenOptions = {}): Record<string, unknown> | unknown[] {
   const { delimiter = '.', notation = 'dot', object = false, overwrite = false, escape = true, arrayLimit = 1000, asArray = false, transformKey } = options;

@@ -3,6 +3,7 @@ import type { Notation } from '../shared/notation.ts';
 import type { Segments } from '../shared/path-types.ts';
 import type { IsAny, IsUnion, Option } from '../shared/types.ts';
 
+/** How the paths given to the `flattify/path` helpers are written. */
 export interface PathOptions {
   /** Separates the keys of a path. Default: `'.'`. */
   delimiter?: string;
@@ -12,6 +13,7 @@ export interface PathOptions {
   escape?: boolean;
 }
 
+/** Options of `set`: how the path is written, and what is created for missing keys. */
 export interface SetOptions extends PathOptions {
   /** Creates objects only, never arrays, for missing keys along the path. Default: `false`. */
   object?: boolean;
