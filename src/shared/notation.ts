@@ -1,4 +1,4 @@
-import { escapeKey, escapePointer, splitBracketPath, splitPath, splitPointer } from './path.ts';
+import { escapePointer, keyEscaper, splitBracketPath, splitPath, splitPointer } from './path.ts';
 
 /**
  * How paths are written:
@@ -25,11 +25,17 @@ export function pathFormat(notation: Notation, delimiter: string, escape: boolea
       split: splitPointer,
     };
   }
-  const extra = notation === 'bracket' ? '[' : '';
+  const bracket = notation === 'bracket';
+  const escapeKey = escape ? keyEscaper(delimiter, bracket ? '[' : '') : undefined;
+  const digitDelimiter = /\d/.test(delimiter);
   return {
     join: (path, key, isIndex) => {
-      if (isIndex && notation === 'bracket') return `${path ?? ''}[${key}]`;
-      const segment = escape ? escapeKey(key, delimiter, extra) : key;
+      if (isIndex) {
+        if (bracket) return `${path ?? ''}[${key}]`;
+        // Array indices are digits: they only need escaping when the delimiter holds a digit.
+        if (!digitDelimiter) return path === undefined ? key : path + delimiter + key;
+      }
+      const segment = escapeKey ? escapeKey(key) : key;
       return path === undefined ? segment : path + delimiter + segment;
     },
     split: notation === 'bracket' ? (path) => splitBracketPath(path, delimiter, escape) : (path) => splitPath(path, delimiter, escape),

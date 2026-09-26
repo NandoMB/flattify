@@ -1,5 +1,5 @@
 import { describe, expect, expectTypeOf, test } from 'vitest';
-import { flatten, type Flatten } from '../index.ts';
+import { flatten, unflatten, type Flatten } from '../index.ts';
 
 describe('flatten', () => {
   test('Should join nested keys with the delimiter', () => {
@@ -147,6 +147,22 @@ describe('flatten options', () => {
 
   test('notation: Should ignore delimiter and escape with pointers', () => {
     expect(flatten({ 'a.b': { c: 1 } }, { notation: 'pointer', delimiter: '', escape: false })).toEqual({ '/a.b/c': 1 });
+  });
+
+  test('escape: Should escape array indices when the delimiter holds a digit', () => {
+    const result = flatten({ a: ['x'], b: { c: 1 } }, { delimiter: '0' });
+    expect(result).toEqual({ 'a0\\0': 'x', b0c: 1 });
+    expect(unflatten(result, { delimiter: '0' })).toEqual({ a: ['x'], b: { c: 1 } });
+  });
+
+  test('keepEmpty: Should keep empty objects even when Object.prototype was polluted by other code', () => {
+    const proto = Object.prototype as Record<string, unknown>;
+    proto.polluted = true;
+    try {
+      expect(flatten({ a: {}, b: { c: 1 } })).toEqual({ a: {}, 'b.c': 1 });
+    } finally {
+      delete proto.polluted;
+    }
   });
 
   test('escape: Should leave keys as they are when off', () => {

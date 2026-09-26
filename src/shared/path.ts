@@ -1,29 +1,31 @@
 /**
- * `true` when joining `key` with the delimiter could be split back differently: the key contains `\`,
- * the delimiter or one of the `extra` characters, or ends like the start of the delimiter so that the two
- * overlap (`'a:' + '::'` → `'a:::'`).
+ * Builds the function that escapes a single key so the path can be split back. Keys that are already
+ * unambiguous are returned as they are; the others get `\` before every `\`, every first character of the
+ * delimiter and every `extra` character (`[` in bracket notation).
+ *
+ * A key is ambiguous when it contains `\`, the delimiter or an `extra` character, or ends like the start
+ * of the delimiter so that the two overlap (`'a:' + '::'` → `'a:::'`). The overlapping tails depend on the
+ * delimiter only, so they are computed once here rather than for every key.
  */
-function needsEscape(key: string, delimiter: string, extra: string): boolean {
-  if (key.includes('\\') || key.includes(delimiter)) return true;
-  for (const char of extra) if (key.includes(char)) return true;
+export function keyEscaper(delimiter: string, extra: string): (key: string) => string {
+  const tails: string[] = [];
   for (let length = 1; length < delimiter.length; length++) {
     const tail = delimiter.slice(0, length);
-    if (key.endsWith(tail) && (tail + delimiter).startsWith(delimiter)) return true;
+    if ((tail + delimiter).startsWith(delimiter)) tails.push(tail);
   }
-  return false;
+  const special = `\\${delimiter[0]}${extra}`;
+
+  return (key) => {
+    if (key.indexOf('\\') === -1 && key.indexOf(delimiter) === -1 && (extra === '' || key.indexOf(extra) === -1) && !tails.some((tail) => key.endsWith(tail))) return key;
+    let escaped = '';
+    for (const char of key) escaped += special.includes(char) ? `\\${char}` : char;
+    return escaped;
+  };
 }
 
-/**
- * Escapes a single key so the path can be split back. Keys that are already unambiguous are returned as
- * they are; the others get `\` before every `\`, every first character of the delimiter and every `extra`
- * character (`[` in bracket notation).
- */
+/** Escapes a single key; see `keyEscaper`. */
 export function escapeKey(key: string, delimiter: string, extra = ''): string {
-  if (!needsEscape(key, delimiter, extra)) return key;
-  const special = `\\${delimiter[0]}${extra}`;
-  let escaped = '';
-  for (const char of key) escaped += special.includes(char) ? `\\${char}` : char;
-  return escaped;
+  return keyEscaper(delimiter, extra)(key);
 }
 
 /** Splits a path on the delimiter. With `escape`, `\` makes the next character part of the key, reversing `escapeKey`. */
@@ -51,7 +53,13 @@ export function splitPath(path: string, delimiter: string, escape: boolean): str
 
 /** Canonical array indices (`0`, `1`, `42`, not `01` or `-1`) up to `limit`. */
 export function isIndex(segment: string, limit: number): boolean {
-  return /^(?:0|[1-9]\d*)$/.test(segment) && Number(segment) <= limit;
+  const length = segment.length;
+  if (length === 0 || (length > 1 && segment.charCodeAt(0) === 48)) return false;
+  for (let i = 0; i < length; i++) {
+    const code = segment.charCodeAt(i);
+    if (code < 48 || code > 57) return false;
+  }
+  return Number(segment) <= limit;
 }
 
 /**
