@@ -87,7 +87,7 @@ describe('Why flattify?', () => {
 
   test.each(Object.entries(flatteners))('Keeps empty objects and arrays: %s', (name, flattenWith) => {
     const result = flattenWith({ a: {}, b: [] });
-    expect('a' in result && 'b' in result).toBe(name === 'flattify' || name === 'flat' || name === 'es-toolkit');
+    expect('a' in result && 'b' in result).toBe(name !== 'flattie');
   });
 
   test.each(Object.entries(flatteners))('Circular references: %s', (name, flattenWith) => {
