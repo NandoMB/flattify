@@ -1,44 +1,69 @@
-# [Flattify](https://github.com/NandoMB/flattify)
+<div align="center">
 
-[![npm version](https://img.shields.io/npm/v/flattify.svg)](https://www.npmjs.com/package/flattify)
+<a href="https://github.com/NandoMB/flattify">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/NandoMB/flattify/main/.github/assets/logo-dark.svg">
+    <img alt="flattify" src="https://raw.githubusercontent.com/NandoMB/flattify/main/.github/assets/logo-light.svg" height="76">
+  </picture>
+</a>
+
+<h3>Flatten nested objects into <code>path → value</code> pairs and back. Nothing gets lost, and TypeScript knows every path.</h3>
+
+[![npm version](https://img.shields.io/npm/v/flattify?style=flat-square&color=17A8C4&label=npm)](https://www.npmjs.com/package/flattify)
 [![JSR](https://jsr.io/badges/@nandomb/flattify)](https://jsr.io/@nandomb/flattify)
 [![JSR Score](https://jsr.io/badges/@nandomb/flattify/score)](https://jsr.io/@nandomb/flattify)
-[![CI](https://github.com/NandoMB/flattify/actions/workflows/main.yml/badge.svg)](https://github.com/NandoMB/flattify/actions/workflows/main.yml)
-[![npm downloads](https://img.shields.io/npm/dm/flattify.svg)](https://www.npmjs.com/package/flattify)
-[![license](https://img.shields.io/npm/l/flattify.svg)](./LICENSE)
+[![CI](https://img.shields.io/github/actions/workflow/status/NandoMB/flattify/main.yml?branch=main&style=flat-square&label=CI)](https://github.com/NandoMB/flattify/actions/workflows/main.yml)
+[![bundle size](https://img.shields.io/bundlejs/size/flattify?style=flat-square&color=17A8C4)](https://bundlejs.com/?q=flattify)
+[![npm downloads](https://img.shields.io/npm/dm/flattify?style=flat-square&color=17A8C4)](https://www.npmjs.com/package/flattify)
+[![types](https://img.shields.io/badge/types-TypeScript-3178C6?style=flat-square&logo=typescript&logoColor=white)](#types)
+[![license](https://img.shields.io/npm/l/flattify?style=flat-square&color=17A8C4)](./LICENSE)
 [![Socket Badge](https://badge.socket.dev/npm/package/flattify)](https://socket.dev/npm/package/flattify)
 
-Turn nested objects into flat `path → value` pairs **and back, without losing anything on the way**, with every path and value **inferred by TypeScript**.
+<p>
+  <a href="#installation"><b>Install</b></a> ·
+  <a href="#quick-start"><b>Quick start</b></a> ·
+  <a href="#data-integrity"><b>Data integrity</b></a> ·
+  <a href="#why-flattify"><b>Why Flattify?</b></a> ·
+  <a href="#use-cases"><b>Use cases</b></a> ·
+  <a href="#api"><b>API</b></a> ·
+  <a href="#security"><b>Security</b></a>
+</p>
 
-- **Your data comes back exactly as it went:** dates, class instances, `null`, empty objects, keys with dots in them, key order. [Nothing is dropped or changed](#data-integrity)
-- **Safe on untrusted input:** no prototype pollution, no stack overflow on deep or circular objects, no huge arrays from hostile indices
-- **Typed end to end:** hover the result to see every path; `get` and `set` autocomplete paths and check values
-- **Three notations:** `a.b.0`, `a.b[0]` (as in HTML forms) and `/a/b/0` (JSON Pointer)
-- **Checked, not claimed:** 100% test coverage, thousands of random round trips per run, and every [comparison](#why-flattify) with other libraries verified in CI
-- Zero dependencies, ESM and CommonJS, on [npm](https://www.npmjs.com/package/flattify) and [JSR](https://jsr.io/@nandomb/flattify). Runs on Node.js, Bun, Deno, browsers and Cloudflare Workers
+<br>
 
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/NandoMB/flattify/main/.github/assets/demo-dark.gif">
+  <img alt="flatten turns a nested object into path → value pairs, unflatten rebuilds the same object, and TypeScript infers every path" src="https://raw.githubusercontent.com/NandoMB/flattify/main/.github/assets/demo-light.gif" width="760">
+</picture>
+
+</div>
+
+<br>
+
+<table>
+<tr>
+<td width="33%" valign="top"><b>Lossless round trip</b><br><sub>Dates, class instances, <code>null</code>, empty objects, keys with dots and key order come back the way they went in. <a href="#data-integrity">See how</a>.</sub></td>
+<td width="33%" valign="top"><b>Safe on untrusted input</b><br><sub>Hostile keys can't pollute prototypes or allocate huge arrays, and deep or circular objects can't overflow the stack.</sub></td>
+<td width="33%" valign="top"><b>Typed end to end</b><br><sub>Hover the result to see every path. <code>get</code> and <code>set</code> autocomplete paths and check values.</sub></td>
+</tr>
+<tr>
+<td valign="top"><b>Three notations</b><br><sub><code>a.b.0</code>, <code>a.b[0]</code> for HTML forms, and <code>/a/b/0</code> for JSON Pointer.</sub></td>
+<td valign="top"><b>Tested in CI</b><br><sub>100% test coverage, thousands of random round trips per run, and a test behind every <a href="#why-flattify">comparison</a> with other libraries.</sub></td>
+<td valign="top"><b>Zero dependencies</b><br><sub>ESM and CommonJS. Runs on Node.js, Bun, Deno, browsers and Cloudflare Workers.</sub></td>
+</tr>
+</table>
+
+> [!TIP]
 > Upgrading from Flattify 1.x? See [Migrating](#migrating).
-
-## Contents
-
-- [Installation](#installation)
-- [Quick start](#quick-start)
-- [Data integrity](#data-integrity)
-- [Why Flattify?](#why-flattify)
-- [Use cases](#use-cases)
-- [API](#api): [`flatten`](#flatteninput-options), [`unflatten`](#unflatteninput-options), [notations](#notations), [`flattify/path`](#flattifypath)
-- [Types](#types)
-- [Limitations](#limitations)
-- [Compatibility](#compatibility)
-- [Migrating](#migrating)
-- [Security](#security)
 
 ## Installation
 
 ```sh
 npm add flattify    # or: pnpm add flattify / yarn add flattify
 ```
-###### Deno, Bun and Node.js from JSR
+
+From JSR (Deno, Bun and Node.js):
+
 ```sh
 deno add jsr:@nandomb/flattify
 npx jsr add @nandomb/flattify    # or: bunx jsr add @nandomb/flattify
@@ -76,7 +101,7 @@ const flat = flatten(order);
 const back = unflatten(flat); // equals `order` again
 ```
 
-Both results are typed, so the editor knows every path:
+Both results are typed:
 
 ```ts
 flat['items.0.sku'];      // string
@@ -84,11 +109,11 @@ flat['customer.phone'];   // ❌ Property 'customer.phone' does not exist
 back.items[0].sku;        // string
 ```
 
-`flatten` and `unflatten` are a round trip, like serializing and deserializing, except that both sides stay JavaScript objects: only the shape changes. A lot of data already arrives flat, too: form fields, query strings, environment variables, CSV columns. `unflatten` turns it into the object your code wants, safely.
+It works like serializing and deserializing, except that both sides are JavaScript objects and only the shape changes. Data that arrives flat, such as form fields, query strings, environment variables or CSV columns, can go straight into `unflatten`, which is safe to use on it.
 
 ## Data integrity
 
-Most libraries lose something on the way: a `Date` becomes `{}`, `null` disappears, an empty list vanishes, `'utm.source'` is split in two. Flattify keeps all of it:
+Many libraries lose something on the way. A `Date` or a `null` is dropped, a class instance is taken apart, an empty list vanishes, or `'utm.source'` is split in two. Flattify keeps all of it:
 
 ```ts
 const input = {
@@ -113,19 +138,21 @@ back['utm.source'];                  // 'newsletter', still one key
 1 in back.sizes;                     // false: the hole is still a hole
 ```
 
-- **Values are never converted:** only plain objects and arrays are walked. `Date`, `Map`, `Set`, `RegExp`, typed arrays, functions and class instances are kept as they are, by reference
-- **Nothing is dropped:** `null`, `undefined`, empty objects and empty arrays are kept
-- **Keys stay whole:** a key that contains the delimiter is escaped (`'utm\\.source'`); keys without it are never changed
-- **Order is kept:** keys come out depth first, in the order of the input, and come back in the same order
-- **Your input is never modified:** `unflatten` copies the objects it finds in its input before adding keys to them
-- **No surprise arrays:** only indices such as `0` or `42` build arrays, up to [`arrayLimit`](#unflatteninput-options); `'01'` or `'1e3'` stay object keys
-- **Circular data is reported** with its path, instead of freezing or crashing the process; **any depth** is handled, even 100,000 levels
+In detail:
 
-Each guarantee is covered by the test suite, and the round trip is checked on thousands of random objects on every run ([fast-check](https://fast-check.dev)), for every notation.
+- Flattify only walks plain objects and arrays. `Date`, `Map`, `Set`, `RegExp`, typed arrays, functions and class instances are kept by reference and never converted.
+- `null`, `undefined`, empty objects and empty arrays are all kept.
+- A key that contains the delimiter is escaped (`'utm\\.source'`). Other keys are never changed.
+- Keys come out depth first in input order, and `unflatten` puts them back in the same order.
+- Your input is never modified. `unflatten` copies any object it finds in its input before adding keys to it.
+- Only indices like `0` or `42` build arrays, up to [`arrayLimit`](#unflatteninput-options). Keys like `'01'` or `'1e3'` stay object keys.
+- A circular reference throws an error that names its path. Depth has no limit; 100,000 levels work.
+
+The test suite covers each of these, and every run checks the round trip on thousands of random objects with [fast-check](https://fast-check.dev), in every notation.
 
 ## Why Flattify?
 
-Every row is checked by [`bench/claims.spec.ts`](./bench/claims.spec.ts) against flat 6.0.1, flattie 1.1.1, nestie 1.0.3, es-toolkit 1.53.0 and radashi 13.0.1, on every change in CI (`pnpm claims`).
+[`bench/claims.spec.ts`](./bench/claims.spec.ts) checks every row of this table against flat 6.0.1, flattie 1.1.1, nestie 1.0.3, es-toolkit 1.53.2 and radashi 13.0.4 on each CI run (`pnpm claims`).
 
 | | Flattify | [flat](https://www.npmjs.com/package/flat) | [flattie](https://www.npmjs.com/package/flattie) / [nestie](https://www.npmjs.com/package/nestie) | [es-toolkit](https://www.npmjs.com/package/es-toolkit) | [radashi](https://www.npmjs.com/package/radashi) |
 | --- | --- | --- | --- | --- | --- |
@@ -144,18 +171,22 @@ Every row is checked by [`bench/claims.spec.ts`](./bench/claims.spec.ts) against
 | ESM and CommonJS | ✅ | ❌ v6 is ESM only | ✅ | ✅ | ✅ |
 | Size (min + gzip) | 2.3 kB | 0.7 kB | 0.35 kB | 0.34 kB | 0.8 kB |
 
-Flattify is bigger because it does more: the checks above, three notations, escaping and clear error messages. `flattify/path` is a separate import, so it only counts when you use it.
+The extra size pays for the checks above, the three notations, key escaping and the error messages. `flattify/path` is a separate import, so it only adds to your bundle when you use it.
 
 ## Use cases
 
-**HTML forms:** field names such as `address[city]` or `items[0][qty]` become a nested object. Keys like `__proto__[isAdmin]` sent by a malicious client are ignored.
+### HTML forms
+
+Field names like `address[city]` or `items[0][qty]` become a nested object. Keys like `__proto__[isAdmin]` from a malicious client are ignored.
 
 ```ts
 const body = unflatten(Object.fromEntries(new FormData(form)), { notation: 'bracket' });
 // { name: 'Ada', address: { city: 'London' }, items: [{ sku: 'BOOK-1', qty: '2' }] }
 ```
 
-**Query strings**, both ways:
+### Query strings
+
+From an object to a query string and back:
 
 ```ts
 const flat = flatten({ status: 'open', tags: ['a', 'b'] }, { notation: 'bracket' });
@@ -166,70 +197,78 @@ unflatten(Object.fromEntries(new URLSearchParams(location.search)), { notation: 
 // { status: 'open', tags: ['a', 'b'] }
 ```
 
-**Environment variables:** with `'__'` as delimiter, `APP__DB__MAX_CONN` is `app.db.max_conn`.
+### Environment variables
+
+With `'__'` as the delimiter, `APP__DB__MAX_CONN` becomes `app.db.max_conn`:
 
 ```ts
 const env = unflatten(process.env, { delimiter: '__', transformKey: (key) => key.toLowerCase() });
 env.app; // { db: { host: 'localhost', max_conn: '10' } }
 ```
 
-**API lists → CSV or spreadsheets:** one row per record, and the keys are the headers.
+### CSV and spreadsheets
+
+Flatten each record into one row, and the keys become the headers:
 
 ```ts
 const rows = users.map((user) => flatten(user));
 // [{ id: 1, name: 'Ada', 'address.city': 'London' }, ...]
 
-// Or flatten the whole list into one object, and get the list back:
+// Or flatten the whole list into one object and get the list back:
 const same = unflatten(flatten(users), { asArray: true });
 ```
 
-**Partial updates in MongoDB:** `$set` with flat paths changes only the given fields.
+### MongoDB partial updates
+
+`$set` with flat paths changes only those fields:
 
 ```ts
 await users.updateOne({ _id }, { $set: flatten({ profile: { name: 'Ada' } }) });
 // $set: { 'profile.name': 'Ada' }: the other profile fields are kept
 ```
 
-**JSON Schema errors:** validators such as Ajv point to errors with JSON Pointers, which `get` reads directly.
+### JSON Schema errors
+
+Validators like Ajv report errors as JSON Pointers, and `get` reads them directly:
 
 ```ts
 get(data, error.instancePath, { notation: 'pointer' }); // e.g. '/items/0/qty'
 ```
 
-Also: translation files (`messages['home.title']`, typed), structured logs for Datadog or Elasticsearch, and finding what changed between two objects by comparing their flat forms.
+People also use it for typed translation files (`messages['home.title']`), structured logs for Datadog or Elasticsearch, and diffing two objects by comparing their flat forms.
 
 ## API
 
 ### `flatten(input, options?)`
 
-Takes a plain object or an array, and returns a new flat object. Values are not cloned.
+Takes a plain object or array and returns a new flat object. Values are not cloned.
 
 | Option | Default | |
 | --- | --- | --- |
 | `delimiter` | `'.'` | Joins the keys: `{ delimiter: '__' }` → `db__host` |
-| `notation` | `'dot'` | `'dot'`, `'bracket'` or `'pointer'`, see [notations](#notations) |
-| `maxDepth` | `Infinity` | Levels to walk into; deeper objects are kept as values. `1` keeps the top-level keys only |
+| `notation` | `'dot'` | `'dot'`, `'bracket'` or `'pointer'` (see [notations](#notations)) |
+| `maxDepth` | `Infinity` | Levels to walk; deeper objects are kept as values. `1` keeps only top-level keys |
 | `safe` | `false` | Keeps arrays as values: `{ 'user.tags': ['a', 'b'] }` instead of `user.tags.0`, `user.tags.1` |
 | `keepEmpty` | `true` | Keeps empty objects and arrays; `false` drops them |
-| `escape` | `true` | Escapes keys that contain the delimiter (`'utm\\.source'`); `false` leaves them as they are |
-| `circular` | `'throw'` | On a circular reference, throws a `TypeError` with its path, or `'skip'` leaves the key out |
+| `escape` | `true` | Escapes keys containing the delimiter (`'utm\\.source'`); `false` leaves them as is |
+| `circular` | `'throw'` | On a circular reference, throws a `TypeError` with its path; `'skip'` leaves the key out |
 | `transformKey` | | Renames each object key: `(key) => key.toUpperCase()`. Keys are then typed as `string` |
 | `preserve` | | `(path, value) => boolean`: `true` keeps that object or array as a value |
 
-With a longer delimiter, only keys that would really be ambiguous are escaped: with `'__'`, `MAX_CONN` stays as it is, but `MAX_` (which would merge with the delimiter) is escaped.
+With a longer delimiter, Flattify escapes only the keys that would be ambiguous. With `'__'`, `MAX_CONN` stays as is, but `MAX_` is escaped because its trailing `_` would merge with the delimiter.
 
 ### `unflatten(input, options?)`
 
-Takes a flat object, and returns a new nested object. Keys that are array indices build arrays, whatever their order; the top level is always an object, unless `asArray` is set.
+Takes a flat object and returns a new nested object. Index keys build arrays in any order. The top level is always an object unless `asArray` is set.
 
 | Option | Default | |
 | --- | --- | --- |
-| `delimiter` | `'.'` | Splits the keys into paths |
-| `notation` | `'dot'` | `'dot'`, `'bracket'` or `'pointer'`, see [notations](#notations) |
-| `asArray` | `false` | Returns an array: `{ '0.id': 1, '1.id': 2 }` → `[{ id: 1 }, { id: 2 }]`. A top-level key that is not an index throws |
+| `delimiter` | `'.'` | Splits keys into paths |
+| `notation` | `'dot'` | `'dot'`, `'bracket'` or `'pointer'` (see [notations](#notations)) |
+| `asArray` | `false` | Returns an array: `{ '0.id': 1, '1.id': 2 }` → `[{ id: 1 }, { id: 2 }]`. A top-level key that isn't an index throws |
 | `object` | `false` | Never builds arrays: `{ 'list.0': 'a' }` → `{ list: { 0: 'a' } }` |
 | `overwrite` | `false` | When a path goes through a value (`{ a: 1, 'a.b': 2 }`), replaces it (`{ a: { b: 2 } }`) instead of skipping the path |
-| `arrayLimit` | `1000` | Larger indices build object keys, so `'a.4294967294'` can't allocate a huge array |
+| `arrayLimit` | `1000` | Larger indices become object keys, so `'a.4294967294'` can't allocate a huge array |
 | `escape` | `true` | Reads `\` as an escape, as `flatten` writes it |
 | `transformKey` | | Renames each key of the path (not array indices) |
 
@@ -259,19 +298,19 @@ set(config, 'db.prot', 6543);    // ❌ type error: no such path
 
 | Function | |
 | --- | --- |
-| `get(obj, path)` | The value at `path`, or `undefined` when a key is missing |
+| `get(obj, path)` | The value at `path`, or `undefined` if a key is missing |
 | `set(obj, path, value)` | Sets the value, creating missing objects and arrays; returns `obj` |
-| `has(obj, path)` | `true` when every key of the path exists |
-| `del(obj, path)` | Deletes the key; `true` when it existed |
+| `has(obj, path)` | `true` if every key of the path exists |
+| `del(obj, path)` | Deletes the key; `true` if it existed |
 | `paths(obj)` | The paths `flatten` produces |
 | `parsePath(path)` / `stringifyPath(keys)` | `'a\\.b.c'` ↔ `['a.b', 'c']` |
 | `escapeKey(key)` | Escapes one key: `` `user.${escapeKey(field)}` `` |
 
-All of them take `delimiter`, `notation` and `escape` as a last argument, and are safe with untrusted paths.
+Each function takes `delimiter`, `notation` and `escape` as its last argument, and each is safe to call with untrusted paths.
 
 ## Types
 
-Paths and values are computed at the type level, for every option that changes them:
+The types compute paths and values for every option that changes them:
 
 ```ts
 flatten({ user: { tags: ['admin'] } });
@@ -281,16 +320,18 @@ flatten({ a: { b: 1 } }, { notation: 'pointer' });
 // { '/a/b': number }
 ```
 
-Arrays give `` `${number}` `` keys and tuples exact indices; optional or nullable objects give optional paths; unions are merged; `Date`, `Map` and other built-ins stay as values. `Unflatten<Flatten<T>>` gives back `T` for plain data. When an option is only known at runtime (a `string` delimiter, `transformKey`, `preserve`), keys are typed as `string` rather than guessed.
+Arrays give `` `${number}` `` keys and tuples give exact indices. Optional or nullable objects give optional paths, and unions are merged. `Date`, `Map` and other built-ins stay as values. For plain data, `Unflatten<Flatten<T>>` gives back `T`.
 
-Exported types: `Flatten<T, Options>`, `Unflatten<T, Options>`, and from `flattify/path`, `Path<T>`, `Get<T, Path>` and `SetValue<T, Path>`.
+When an option is only known at runtime (a `string` delimiter, `transformKey` or `preserve`), keys are typed as `string`.
+
+Exported types: `Flatten<T, Options>` and `Unflatten<T, Options>`, plus `Path<T>`, `Get<T, Path>` and `SetValue<T, Path>` from `flattify/path`.
 
 ## Limitations
 
-- **Some round trips can't be exact:** an object with only index keys (`{ '0': 'a' }`) comes back as an array; an array given to `flatten` comes back as an object unless `unflatten` gets `{ asArray: true }`; `transformKey` needs its reverse on the way back.
-- **Symbol keys are ignored**, as by `JSON.stringify`.
-- **Types:** TypeScript can't tell a class instance from a plain object, so class instances are typed as if they were flattened. Paths are typed down to 10 levels, and as `unknown` below.
-- **Bracket notation:** an empty top-level key holding an array (`{ '': [1] }`) can't be told apart from the array itself.
+- Some round trips can't be exact. An object with only index keys (`{ '0': 'a' }`) comes back as an array. An array given to `flatten` comes back as an object unless `unflatten` gets `{ asArray: true }`. And `transformKey` needs its inverse on the way back.
+- Symbol keys are ignored, as `JSON.stringify` ignores them.
+- TypeScript can't tell a class instance from a plain object, so class instances are typed as if they were flattened. Paths are typed down to 10 levels, and as `unknown` below that.
+- In bracket notation, an empty top-level key holding an array (`{ '': [1] }`) looks the same as the array itself.
 
 ## Compatibility
 
@@ -300,13 +341,13 @@ Exported types: `Flatten<T, Options>`, `Unflatten<T, Options>`, and from `flatti
 | Modules | ESM and CommonJS |
 | TypeScript | 5.0+, any `moduleResolution` |
 
-CI runs the tests on Node.js 22, 24 and 26, Bun, Deno, Chromium, Firefox, WebKit and workerd (the Cloudflare Workers runtime), and checks the package with [publint](https://publint.dev) and [Are the Types Wrong?](https://arethetypeswrong.github.io).
+CI runs the tests on Node.js 22, 24 and 26, Bun, Deno, Chromium, Firefox, WebKit and workerd (the Cloudflare Workers runtime). It also checks the package with [publint](https://publint.dev) and [Are the Types Wrong?](https://arethetypeswrong.github.io).
 
 ## Migrating
 
 ### From `flat`
 
-Same option names (`delimiter`, `maxDepth`, `safe`, `object`, `overwrite`, `transformKey`), with safer defaults:
+The options have the same names (`delimiter`, `maxDepth`, `safe`, `object`, `overwrite`, `transformKey`), but some defaults are safer:
 
 | | `flat` | Flattify |
 | --- | --- | --- |
@@ -329,19 +370,23 @@ Same option names (`delimiter`, `maxDepth`, `safe`, `object`, `overwrite`, `tran
 | `flattify(array)` (each item flattened) | `array.map((item) => flatten(item))` |
 | `flattify(jsonString)` | `flatten(JSON.parse(jsonString))` |
 
-It also fixes nested arrays losing their path: `{ a: { tags: [1] } }` gave `{ tags: '[1]' }`, and now gives `{ 'a.tags.0': 1 }`.
+2.0 also fixes nested arrays losing their path: `{ a: { tags: [1] } }` gave `{ tags: '[1]' }` and now gives `{ 'a.tags.0': 1 }`.
 
 ## Security
 
-- **No prototype pollution:** `unflatten` and `set` only create own properties; paths through `__proto__` are skipped, in every notation. (`flat` had this flaw as [CVE-2020-36632](https://nvd.nist.gov/vuln/detail/CVE-2020-36632), fixed in 5.0.1.)
-- **No stack overflow:** objects are walked with an explicit stack instead of recursion, so any depth is handled, and circular references throw a clear error.
-- **No huge arrays:** `arrayLimit` bounds the indices `unflatten` turns into arrays.
-- **No slowdown on hostile paths:** the bracket parser stays linear on input like `a[[[[...`.
+- `unflatten` and `set` only create own properties, and they skip any path through `__proto__` in every notation, so they can't pollute prototypes. (`flat` had this flaw as [CVE-2020-36632](https://nvd.nist.gov/vuln/detail/CVE-2020-36632), fixed in 5.0.1.)
+- Objects are walked with an explicit stack instead of recursion, so deep input can't overflow the stack, and a circular reference throws an error that names its path.
+- `arrayLimit` caps the indices that `unflatten` turns into arrays, so a key like `'a.4294967294'` can't allocate a huge one.
+- The bracket parser takes linear time, even on hostile input like `a[[[[...`.
 
-All of this is tested, and `unflatten` is fuzzed with random paths made of `__proto__`, `constructor` and `prototype`. Releases are published from GitHub Actions with [npm provenance](https://docs.npmjs.com/generating-provenance-statements) and [staged](https://docs.npmjs.com/staged-publishing/) for approval with 2FA.
+The test suite covers all of this, and it fuzzes `unflatten` with random paths built from `__proto__`, `constructor` and `prototype`. Releases are published from GitHub Actions with [npm provenance](https://docs.npmjs.com/generating-provenance-statements), and each one is [staged](https://docs.npmjs.com/staged-publishing/) until it is approved with 2FA.
 
-Found a vulnerability? Please report it privately, see [SECURITY.md](./SECURITY.md).
+Found a vulnerability? Please report it privately, as described in [SECURITY.md](./SECURITY.md).
 
 ## License
 
-[MIT](./LICENSE) © 2016 Fernando Machado Bernardino
+<p align="center">
+  <img src="https://raw.githubusercontent.com/NandoMB/flattify/main/.github/assets/mark.svg" alt="" width="40"><br>
+  <a href="./LICENSE">MIT</a> © 2016 <a href="https://github.com/NandoMB">Fernando Machado Bernardino</a><br>
+  <sub>If Flattify saves you time, a ⭐ on <a href="https://github.com/NandoMB/flattify">GitHub</a> helps others find it.</sub>
+</p>
