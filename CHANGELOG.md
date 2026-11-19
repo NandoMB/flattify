@@ -1,5 +1,11 @@
 # flattify
 
+## 2.0.2
+
+### Patch Changes
+
+- ba7d9ef: New README on npm and JSR: logo, an animated demo, a feature overview, and plainer wording throughout. No code changes.
+
 ## 2.0.1
 
 ### Patch Changes
