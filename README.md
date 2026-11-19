@@ -125,7 +125,7 @@ Each guarantee is covered by the test suite, and the round trip is checked on th
 
 ## Why Flattify?
 
-Every row is checked by [`bench/claims.spec.ts`](./bench/claims.spec.ts) against flat 6.0.1, flattie 1.1.1, nestie 1.0.3, es-toolkit 1.52.0 and radashi 12.9.6, on every change in CI (`pnpm claims`).
+Every row is checked by [`bench/claims.spec.ts`](./bench/claims.spec.ts) against flat 6.0.1, flattie 1.1.1, nestie 1.0.3, es-toolkit 1.53.0 and radashi 13.0.1, on every change in CI (`pnpm claims`).
 
 | | Flattify | [flat](https://www.npmjs.com/package/flat) | [flattie](https://www.npmjs.com/package/flattie) / [nestie](https://www.npmjs.com/package/nestie) | [es-toolkit](https://www.npmjs.com/package/es-toolkit) | [radashi](https://www.npmjs.com/package/radashi) |
 | --- | --- | --- | --- | --- | --- |
@@ -133,7 +133,7 @@ Every row is checked by [`bench/claims.spec.ts`](./bench/claims.spec.ts) against
 | Keeps `Date` and `Map` as values | ✅ | ✅ | ❌ dropped | ✅ | ✅ |
 | Keeps class instances as values | ✅ | ❌ | ❌ | ✅ | ❌ |
 | Keeps `null` values | ✅ | ✅ | ❌ dropped | ✅ | ✅ |
-| Keeps empty objects and arrays | ✅ | ✅ | ❌ dropped | ✅ | ❌ dropped |
+| Keeps empty objects and arrays | ✅ | ✅ | ❌ dropped | ✅ | ✅ |
 | Circular references | ✅ clear error | ❌ stack overflow | ❌ stack overflow | ❌ stack overflow | ❌ stack overflow |
 | Deeply nested input (100k levels) | ✅ | ❌ stack overflow | ❌ stack overflow | ❌ stack overflow | ❌ stack overflow |
 | Limit on array indices when unflattening | ✅ | ❌ | ❌ | – | ❌ |
