@@ -74,8 +74,8 @@
     "@arethetypeswrong/cli": "^0.18.5",
     "@changesets/cli": "^3.0.3",
     "@types/node": "^26.6.6",
-    "@vitest/browser-playwright": "^5.1.1",
-    "@vitest/coverage-istanbul": "^5.1.1",
+    "@vitest/browser-playwright": "~5.0.5",
+    "@vitest/coverage-istanbul": "~5.0.5",
     "es-toolkit": "1.53.0",
     "esbuild": "^0.28.2",
     "fast-check": "^4.10.3",
@@ -89,7 +89,7 @@
     "tsdown": "^0.23.7",
     "typescript": "^7.0.2",
     "typescript-5.0": "npm:typescript@5.0.4",
-    "vitest": "^5.1.1"
+    "vitest": "~5.0.5"
   },
   "keywords": [
     "flattify",
