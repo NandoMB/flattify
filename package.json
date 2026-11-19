@@ -74,9 +74,9 @@
     "@arethetypeswrong/cli": "^0.18.5",
     "@changesets/cli": "^3.0.3",
     "@types/node": "^26.6.6",
-    "@vitest/browser-playwright": "~5.0.5",
-    "@vitest/coverage-istanbul": "~5.0.5",
-    "es-toolkit": "1.53.0",
+    "@vitest/browser-playwright": "~5.1.0",
+    "@vitest/coverage-istanbul": "~5.1.0",
+    "es-toolkit": "1.53.2",
     "esbuild": "^0.28.2",
     "fast-check": "^4.10.3",
     "flat": "6.0.1",
@@ -85,11 +85,11 @@
     "nestie": "1.0.3",
     "playwright": "^1.65.1",
     "publint": "^0.3.25",
-    "radashi": "13.0.1",
+    "radashi": "13.0.4",
     "tsdown": "^0.23.7",
     "typescript": "^7.0.2",
     "typescript-5.0": "npm:typescript@5.0.4",
-    "vitest": "~5.0.5"
+    "vitest": "~5.1.0"
   },
   "keywords": [
     "flattify",
