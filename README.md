@@ -152,7 +152,7 @@ The test suite covers each of these, and every run checks the round trip on thou
 
 ## Why Flattify?
 
-[`bench/claims.spec.ts`](./bench/claims.spec.ts) checks every row of this table against flat 6.0.1, flattie 1.1.1, nestie 1.0.3, es-toolkit 1.53.0 and radashi 13.0.1 on each CI run (`pnpm claims`).
+[`bench/claims.spec.ts`](./bench/claims.spec.ts) checks every row of this table against flat 6.0.1, flattie 1.1.1, nestie 1.0.3, es-toolkit 1.53.2 and radashi 13.0.4 on each CI run (`pnpm claims`).
 
 | | Flattify | [flat](https://www.npmjs.com/package/flat) | [flattie](https://www.npmjs.com/package/flattie) / [nestie](https://www.npmjs.com/package/nestie) | [es-toolkit](https://www.npmjs.com/package/es-toolkit) | [radashi](https://www.npmjs.com/package/radashi) |
 | --- | --- | --- | --- | --- | --- |
